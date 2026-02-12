@@ -1,0 +1,27 @@
+[project]
+name = "dysarthric-TTS"
+version = "0.1.0"
+description = "Preprocessing and TTS for dysarthric speech"
+requires-python = ">=3.11"
+dependencies = [
+    "librosa",
+    "pandas",
+    "soundfile",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = []
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

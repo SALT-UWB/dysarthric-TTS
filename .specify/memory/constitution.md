@@ -1,18 +1,15 @@
 <!--
 Sync Impact Report:
-- Version change: 0.0.0 -> 1.0.0
+- Version change: 1.0.0 -> 1.1.0
 - List of modified principles:
-  - [PRINCIPLE_1_NAME] -> Dataset Licensing & Access
-  - [PRINCIPLE_2_NAME] -> Privacy & Ethics
-  - [PRINCIPLE_3_NAME] -> Deterministic Preprocessing
-  - [PRINCIPLE_4_NAME] -> Normalized Source of Truth
-  - [PRINCIPLE_5_NAME] -> Engineering Quality
-- Added sections:
-  - Governance & Change Management (Principle 6)
+  - Engineering Quality (Principle V) -> Added requirement for .gitignore of raw data.
+- Added sections: None
 - Removed sections: None
 - Templates requiring updates:
   - .specify/templates/tasks-template.md: ✅ Added placeholder for dummy data setup.
   - .specify/templates/spec-template.md: ✅ Added Ethics & Licensing section.
+  - .specify/templates/plan-template.md: ✅ Updated Constitution Check section.
+  - .gemini/commands/speckit.constitution.toml: ✅ Removed CLAUDE reference and corrected paths.
 - Follow-up TODOs: None
 -->
 
@@ -54,6 +51,7 @@ Implementation MUST follow high engineering standards.
 - Automated testing with `pytest` is MANDATORY for all preprocessing logic.
 - CI pipelines MUST run on all Pull Requests to enforce quality gates.
 - The repository MUST maintain a clean structure with clear documentation.
+- Raw data directories MUST be strictly ignored via `.gitignore`.
 
 ### VI. Governance & Change Management
 The Constitution is the supreme document and MUST override any feature specification, implementation plan, or task list.
@@ -64,4 +62,4 @@ The Constitution is the supreme document and MUST override any feature specifica
 ## Governance
 All development activities must align with the core principles. The amendment process requires documenting the rationale for any changes and assessing the impact on existing data and code.
 
-**Version**: 1.0.0 | **Ratified**: 2026-02-11 | **Last Amended**: 2026-02-11
+**Version**: 1.1.0 | **Ratified**: 2026-02-11 | **Last Amended**: 2026-02-12

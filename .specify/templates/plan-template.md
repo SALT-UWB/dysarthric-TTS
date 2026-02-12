@@ -31,7 +31,12 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] **Principle I (Licensing)**: Does this plan avoid Redistributing real data?
+- [ ] **Principle II (Ethics)**: Does it avoid speaker-identity cloning/mimicry?
+- [ ] **Principle III (Determinism)**: Are seeds and environment capture planned?
+- [ ] **Principle IV (Truth)**: Does output match the canonical versioned schema?
+- [ ] **Principle V (Quality)**: Ruff/Mypy/Pytest/CI and importable modules used?
+- [ ] **Principle VI (Governance)**: Is versioning applied if normalized format changes?
 
 ## Project Structure
 

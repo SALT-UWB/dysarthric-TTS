@@ -82,12 +82,6 @@
   Fill them out with the right functional requirements.
 -->
 
-### Ethics & Licensing Compliance
-
-- **EL-001**: System MUST NOT redistribute real PC-GITA audio/metadata.
-- **EL-002**: System MUST protect participant privacy (no re-identification/cloning).
-- **EL-003**: All preprocessing MUST be deterministic and fail-loud.
-
 ### Functional Requirements
 
 - **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
@@ -119,3 +113,9 @@
 - **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+
+## Ethics & Licensing *(mandatory)*
+
+- **EL-001**: Feature MUST NOT use real PC-GITA data for automated tests.
+- **EL-002**: Data handling MUST prevent re-identification of participants.
+- **EL-003**: Outputs MUST NOT reproduce individual speaker identities (no cloning).
