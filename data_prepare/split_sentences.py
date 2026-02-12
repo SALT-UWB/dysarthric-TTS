@@ -49,6 +49,14 @@ def split_recording(
         logger.error(f"FAIL LOUDLY: {stem}.wav sampling rate is {sr}, expected {expected_sr}")
         sys.exit(1)
 
+    # Read source text for reference (to preserve punctuation)
+    try:
+        with open(txt_path, 'r', encoding='utf-8') as f:
+            source_words = f.read().split()
+    except Exception as e:
+        logger.error(f"Error reading {txt_path}: {e}")
+        return 0, []
+
     # Read alignment CSV
     try:
         df = pd.read_csv(csv_path, sep=csv_delimiter)
@@ -155,15 +163,18 @@ def split_recording(
         seg_df.to_csv(output_dir / f"{seg_stem}.csv", sep=csv_delimiter, index=False)
         
         # TXT
-        # Deduplicate words using the TOKEN column
-        # Each unique non-negative TOKEN corresponds to one word
-        speech_df = seg_df[(seg_df['TOKEN'] >= 0) & (seg_df['ORT'].str.strip() != '<p:>')]
+        # Get unique TOKEN IDs in this segment (ignoring -1)
+        seg_token_ids = sorted(seg_df[seg_df['TOKEN'] >= 0]['TOKEN'].unique().tolist())
         
-        # Group by TOKEN and take the first ORT for each
-        if not speech_df.empty:
-            words = speech_df.groupby('TOKEN', sort=True)['ORT'].first().astype(str).tolist()
-        else:
-            words = []
+        # Map tokens to words from the original source text
+        words = []
+        for tid in seg_token_ids:
+            if 0 <= tid < len(source_words):
+                words.append(source_words[tid])
+            else:
+                # Fallback to ORT if token is out of bounds
+                fallback_ort = seg_df[seg_df['TOKEN'] == tid]['ORT'].iloc[0]
+                words.append(str(fallback_ort))
             
         seg_text = " ".join(words)
         with open(output_dir / f"{seg_stem}.txt", 'w', encoding='utf-8') as f:
