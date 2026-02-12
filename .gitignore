@@ -208,5 +208,6 @@ __marimo__/
 
 datalocal/
 .gemini/
+.specify/
 
 
