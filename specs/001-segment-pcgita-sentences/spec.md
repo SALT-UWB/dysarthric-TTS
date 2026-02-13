@@ -24,7 +24,7 @@ As a researcher, I want to split long audio recordings into individual sentences
 
 ### User Story 2 - Automated Dataset Statistics (Priority: P2)
 
-As a data scientist, I want to generate a report of the segmented dataset, including word counts and breakdowns by speaker group (Healthy Control vs Patient), so that I can validate the balance of my training data.
+As a data scientist, I want to generate a report of the segmented dataset, including word counts, audio duration, and breakdowns by speaker group (Healthy Control vs Patient), so that I can validate the balance of my training data.
 
 **Why this priority**: Essential for quality assurance and scientific reporting.
 

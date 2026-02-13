@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from data_prepare.audio_utils import get_duration_samples, get_sampling_rate
 
 def validate_triples(data_dir: Path | str) -> dict[str, Any]:
     """
@@ -42,10 +43,10 @@ def compute_statistics(data_dir: Path | str, stems: list[str]) -> dict[str, Any]
     Computes dataset statistics for the given stems.
     """
     data_dir = Path(data_dir)
-    stats: dict[str, dict[str, int]] = {
-        "total": {"files": 0, "sentences": 0, "words": 0},
-        "hc": {"files": 0, "sentences": 0, "words": 0},
-        "pd": {"files": 0, "sentences": 0, "words": 0}
+    stats: dict[str, dict[str, Any]] = {
+        "total": {"files": 0, "sentences": 0, "words": 0, "duration_sec": 0.0},
+        "hc": {"files": 0, "sentences": 0, "words": 0, "duration_sec": 0.0},
+        "pd": {"files": 0, "sentences": 0, "words": 0, "duration_sec": 0.0}
     }
     
     # Tracking original source files (by removing the _### suffix)
@@ -66,8 +67,15 @@ def compute_statistics(data_dir: Path | str, stems: list[str]) -> dict[str, Any]
             content = f.read()
             words = len(content.split())
             
+        # Get duration
+        wav_path = data_dir / f"{stem}.wav"
+        sr = get_sampling_rate(wav_path)
+        samples = get_duration_samples(wav_path)
+        duration = float(samples) / sr
+
         stats["total"]["sentences"] += 1
         stats["total"]["words"] += words
+        stats["total"]["duration_sec"] += duration
         
         source_stem = stem.rsplit('_', 1)[0] if '_' in stem else stem
         source_files.add(source_stem)
@@ -75,6 +83,7 @@ def compute_statistics(data_dir: Path | str, stems: list[str]) -> dict[str, Any]
         if group:
             stats[group]["sentences"] += 1
             stats[group]["words"] += words
+            stats[group]["duration_sec"] += duration
             if is_hc:
                 hc_sources.add(source_stem)
             else:
