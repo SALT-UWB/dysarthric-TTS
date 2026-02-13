@@ -28,7 +28,7 @@ As a data scientist, I want to generate a report of the segmented dataset, inclu
 
 **Why this priority**: Essential for quality assurance and scientific reporting.
 
-**Independent Test**: Can be tested by running the `split_sentences.ipynb` notebook on an output directory and verifying that HC/PD counts match the expected file naming patterns.
+**Independent Test**: Can be tested by running the `split_sentences_stats.ipynb` notebook on an output directory and verifying that HC/PD counts match the expected file naming patterns.
 
 **Acceptance Scenarios**:
 

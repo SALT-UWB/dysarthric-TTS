@@ -39,6 +39,6 @@ python data_prepare/split_sentences.py --input_dir datalocal/PC_GITA/v260210_24k
    ```bash
    jupyter notebook
    ```
-2. Open `data_prepare/split_sentences.ipynb`.
+2. Open `data_prepare/split_sentences_stats.ipynb`.
 3. Set the `DATA_DIR` variable to your output path (e.g., `../datalocal/processed/v1`).
 4. Run all cells to generate the stats report in `reports/dataset_stats.json`.

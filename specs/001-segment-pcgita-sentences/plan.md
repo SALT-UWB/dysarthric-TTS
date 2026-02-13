@@ -49,7 +49,7 @@ specs/001-segment-pcgita-sentences/
 data_prepare/
 ├── __init__.py
 ├── split_sentences.py   # Main CLI tool
-└── split_sentences.ipynb # Validation & Stats Notebook
+└── split_sentences_stats.ipynb # Validation & Stats Notebook
 
 tests/
 ├── conftest.py

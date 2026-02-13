@@ -76,9 +76,9 @@ description: "Task list for Phase-1 sentence splitting implementation"
 
 ### Implementation for User Story 2
 
-- [x] T015 [US2] Implement triple validation logic (wav/txt/csv matching) in data_prepare/split_sentences.ipynb
-- [x] T016 [US2] Implement HC/PD categorization and statistical aggregation (word/sentence counts) in data_prepare/split_sentences.ipynb
-- [x] T017 [US2] Implement machine-readable report export (JSON/CSV) to reports/ directory in data_prepare/split_sentences.ipynb
+- [x] T015 [US2] Implement triple validation logic (wav/txt/csv matching) in data_prepare/split_sentences_stats.ipynb
+- [x] T016 [US2] Implement HC/PD categorization and statistical aggregation (word/sentence counts) in data_prepare/split_sentences_stats.ipynb
+- [x] T017 [US2] Implement machine-readable report export (JSON/CSV) to reports/ directory in data_prepare/split_sentences_stats.ipynb
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently.
 
