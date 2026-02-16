@@ -57,6 +57,16 @@ After segmentation, you can use the provided Jupyter notebook to validate the da
   - **Silence Analysis**: Computes and visualizes (via histograms) the distribution of leading and trailing silence across all segments.
   - Generates machine-readable reports in `reports/`.
 
+## Alignment Checking
+
+Interactively verify audio-to-text alignment:
+
+- **Notebook**: `data_prepare/check_alignment.ipynb`
+- **Capabilities**:
+  - Filter by speaker and segment.
+  - View waveform and spectrogram with overlaid phoneme/word boundaries.
+  - Play audio segments directly in the browser.
+
 ## Monologue Transcription
 
 For the monologue subset, use the following script to generate normalized transcripts from master metadata:

@@ -36,7 +36,18 @@ As a data scientist, I want to generate a report of the segmented dataset, inclu
 
 ---
 
-### User Story 3 - Monologue Transcription Generation (Priority: P2)
+### User Story 3 - Interactive Alignment Verification (Priority: P2)
+
+As a linguist, I want to interactively inspect the alignment of phonemes and words against the audio signal, so that I can manually verify the quality of the automatic segmentation.
+
+**Acceptance Scenarios**:
+
+1. **Given** a directory of segmented files, **When** I open the inspection notebook, **Then** I MUST be able to select a speaker and an individual segment via dropdown menus.
+2. **Given** a selected segment, **When** the visualization is rendered, **Then** it MUST display the waveform, spectrogram, and vertical markers for phoneme and word boundaries.
+
+---
+
+### User Story 4 - Monologue Transcription Generation (Priority: P2)
 
 As a researcher, I want to automatically generate transcripts for the monologue recordings by mapping them to the provided master metadata, so that I have a complete dataset for the monologue subset.
 
@@ -47,7 +58,7 @@ As a researcher, I want to automatically generate transcripts for the monologue 
 
 ---
 
-### User Story 4 - Reproducible Environment Setup (Priority: P3)
+### User Story 5 - Reproducible Environment Setup (Priority: P3)
 
 As a developer, I want clear instructions and a standardized `.venv` setup, so that I can run the preprocessing pipeline consistently across different machines.
 
@@ -84,6 +95,8 @@ As a developer, I want clear instructions and a standardized `.venv` setup, so t
 - [x] FR-010: Transcript cleaning MUST enforce lowercase, sentence-start capitalization, and removal of spaces before punctuation.
 - [x] FR-011: System MUST append a comma to transcripts of segments that do not end at a natural sentence boundary.
 - [x] FR-012: Silence cropping MUST partially reduce silence proportionally if full cropping violates `--min_duration`.
+- [x] FR-013: System MUST provide an interactive notebook for speaker and segment selection.
+- [x] FR-014: Visualization MUST include synchronized waveform, spectrogram, and boundary markers (phonemes/words).
 
 ### Key Entities *(include if feature involves data)*
 
