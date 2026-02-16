@@ -24,16 +24,17 @@ As a researcher, I want to split long audio recordings into individual sentences
 
 ### User Story 2 - Automated Dataset Statistics (Priority: P2)
 
-As a data scientist, I want to generate a report of the segmented dataset, including word counts, audio duration, and breakdowns by speaker group (Healthy Control vs Patient), so that I can validate the balance of my training data.
+As a data scientist, I want to generate a report of the segmented dataset, including word counts, audio duration, and silence distributions (leading/trailing), so that I can validate the balance and quality of my training data.
 
 **Why this priority**: Essential for quality assurance and scientific reporting.
 
-**Independent Test**: Can be tested by running the `split_sentences_stats.ipynb` notebook on an output directory and verifying that HC/PD counts match the expected file naming patterns.
+**Independent Test**: Can be tested by running the `split_sentences_stats.ipynb` notebook on an output directory and verifying that HC/PD counts and silence distributions are generated.
 
 **Acceptance Scenarios**:
 
 1. **Given** a directory of segmented files, **When** I run the validation notebook, **Then** it MUST flag any incomplete triples (missing wav, txt, or csv).
 2. **Given** segmented files with names like "001PD_..." and "041YHC_...", **When** stats are computed, **Then** they MUST be correctly categorized into Patient (PD) and Healthy Control (HC) groups.
+3. **Given** segmented CSVs, **When** the stats notebook is run, **Then** it MUST calculate and visualize the distribution (min, max, mean) of leading and trailing silence.
 
 ---
 
@@ -68,7 +69,8 @@ As a developer, I want clear instructions and a standardized `.venv` setup, so t
 - **FR-004**: System MUST trigger a cut on any pause duration > 1.0 second (configurable).
 - **FR-005**: Segmented CSVs MUST preserve all columns from the original header but shift BEGIN values.
 - **FR-006**: The notebook MUST save statistics to a machine-readable JSON/CSV in a `reports/` directory.
-- **FR-007**: Scripts MUST handle Windows backslashes and POSIX paths transparently.
+- [x] FR-007: Scripts MUST handle Windows backslashes and POSIX paths transparently.
+- [x] FR-008: System MUST calculate and visualize leading and trailing silence distributions for all segments.
 
 ### Key Entities *(include if feature involves data)*
 

@@ -25,8 +25,19 @@ python -m venv .venv
 ```bash
 pip install -e .
 # Or manually:
-pip install librosa pandas soundfile pytest ruff mypy jupyter nbformat nbconvert
+pip install librosa pandas soundfile pytest ruff mypy jupyter nbformat nbconvert matplotlib seaborn
 ```
+
+## Dataset Analysis & Statistics
+
+After segmentation, you can use the provided Jupyter notebook to validate the data and generate reports:
+
+- **Notebook**: `data_prepare/split_sentences_stats.ipynb`
+- **Capabilities**:
+  - Triple validation (ensures every segment has matching `.wav`, `.txt`, and `.csv`).
+  - Breakdown of word counts, sentence counts, and total duration for Healthy Control (HC) and Patient (PD) groups.
+  - **Silence Analysis**: Computes and visualizes (via histograms) the distribution of leading and trailing silence across all segments.
+  - Generates machine-readable reports in `reports/`.
 
 ## Dataset Protection
 
