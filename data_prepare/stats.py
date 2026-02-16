@@ -2,6 +2,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+import pandas as pd
+
 from data_prepare.audio_utils import get_duration_samples, get_sampling_rate
 
 def validate_triples(data_dir: Path | str) -> dict[str, Any]:
@@ -101,3 +103,39 @@ def save_report(stats: dict[str, Any], output_path: Path | str) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(stats, f, indent=4)
+
+def get_silence_durations(data_dir: Path | str, stems: list[str]) -> dict[str, list[float]]:
+    """
+    Extracts leading and trailing silence durations (in seconds) for each stem.
+    Assumes CSVs are present in the same directory.
+    """
+    data_dir = Path(data_dir)
+    leading_silences = []
+    trailing_silences = []
+    
+    for stem in stems:
+        csv_path = data_dir / f"{stem}.csv"
+        wav_path = data_dir / f"{stem}.wav"
+        
+        try:
+            df = pd.read_csv(csv_path, sep=';') # Use default or detect
+            sr = get_sampling_rate(wav_path)
+            
+            # Leading silence (first row if it is <p:>)
+            if not df.empty and (df.iloc[0]['MAU'] == '<p:>' or df.iloc[0]['ORT'] == '<p:>'):
+                leading_silences.append(float(df.iloc[0]['DURATION']) / sr)
+            else:
+                leading_silences.append(0.0)
+                
+            # Trailing silence (last row if it is <p:>)
+            if not df.empty and (df.iloc[-1]['MAU'] == '<p:>' or df.iloc[-1]['ORT'] == '<p:>'):
+                trailing_silences.append(float(df.iloc[-1]['DURATION']) / sr)
+            else:
+                trailing_silences.append(0.0)
+        except Exception:
+            continue
+            
+    return {
+        "leading": leading_silences,
+        "trailing": trailing_silences
+    }
