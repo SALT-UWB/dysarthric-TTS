@@ -28,6 +28,24 @@ pip install -e .
 pip install librosa pandas soundfile pytest ruff mypy jupyter nbformat nbconvert matplotlib seaborn
 ```
 
+## PC-GITA Sentence Splitting
+
+Split recordings into sentences based on phoneme alignment:
+
+```powershell
+python data_prepare/split_sentences.py `
+    --input_dir datalocal/v260210_24kHz/readtext `
+    --output_dir datalocal/v260210_24kHz/readtext_split `
+    --max_silence_ms 500
+```
+
+- **Core Logic**: Splits at midpoints of pauses (`<p:>`) if followed by a capital letter or if the pause exceeds `--pause_threshold`.
+- **New Features**:
+  - **Silence Cropping**: `--max_silence_ms` clips leading/trailing silence (WAV and CSV synced).
+  - **Duration Safety**: If cropping violates `--min_duration`, silence is reduced **partially** (proportionally) to maintain the minimum length.
+  - **Auto-Comma**: If a split happens mid-sentence, a comma is added to the TXT output.
+  - **Punctuation**: Preserves punctuation from source TXT files via `TOKEN` mapping.
+
 ## Dataset Analysis & Statistics
 
 After segmentation, you can use the provided Jupyter notebook to validate the data and generate reports:

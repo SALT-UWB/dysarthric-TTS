@@ -11,14 +11,12 @@
 
 As a researcher, I want to split long audio recordings into individual sentences based on phoneme alignment metadata, so that I can prepare a clean dataset for TTS training.
 
-**Why this priority**: Core deliverable. Without splitting, downstream Phase-2 training cannot begin.
-
-**Independent Test**: Can be fully tested by running `split_sentences.py` on a dummy recording with a known alignment CSV and verifying that output files match the expected midpoint-pause cuts.
-
 **Acceptance Scenarios**:
 
 1. **Given** a WAV file and a corresponding alignment CSV, **When** the script detects a pause token followed by a capitalized word, **Then** it MUST cut the audio and metadata at the midpoint of that pause.
 2. **Given** a segment starting at sample X, **When** the segmented CSV is written, **Then** all BEGIN sample values MUST be shifted by -X so the segment starts at 0.
+3. **Given** a split occurring at a long pause that is NOT a sentence boundary, **When** the TXT is generated, **Then** a comma MUST be appended to the transcript.
+4. **Given** the `--max_silence_ms` flag, **When** cropping would reduce duration below `--min_duration`, **Then** the script MUST partially crop silence proportionally to maintain the minimum duration.
 
 ---
 
@@ -84,6 +82,8 @@ As a developer, I want clear instructions and a standardized `.venv` setup, so t
 - [x] FR-008: System MUST calculate and visualize leading and trailing silence distributions for all segments.
 - [x] FR-009: System MUST map monologue audio IDs to transcripts using the `PCGITAtoPD_mapping.csv` master file.
 - [x] FR-010: Transcript cleaning MUST enforce lowercase, sentence-start capitalization, and removal of spaces before punctuation.
+- [x] FR-011: System MUST append a comma to transcripts of segments that do not end at a natural sentence boundary.
+- [x] FR-012: Silence cropping MUST partially reduce silence proportionally if full cropping violates `--min_duration`.
 
 ### Key Entities *(include if feature involves data)*
 
