@@ -157,20 +157,30 @@ def split_recording(
 
         # 3a. Crop leading/trailing silence if requested
         if max_silence_samples >= 0:
-            proposed_start = actual_start
-            proposed_end = actual_end
+            leading_excess = max(0, leading_sil_samples - max_silence_samples)
+            trailing_excess = max(0, trailing_sil_samples - max_silence_samples)
+            total_excess = leading_excess + trailing_excess
             
-            if leading_sil_samples > max_silence_samples:
-                proposed_start = (start + leading_sil_samples) - max_silence_samples
-            if trailing_sil_samples > max_silence_samples:
-                proposed_end = (end - trailing_sil_samples) + max_silence_samples
+            current_samples = end - start
+            min_samples = int(min_duration * sr)
+            max_to_remove = max(0, current_samples - min_samples)
             
-            # Check if the cropped segment still meets min_duration
-            if samples_to_seconds(proposed_end - proposed_start, sr) >= min_duration:
-                actual_start = proposed_start
-                actual_end = proposed_end
+            if total_excess > max_to_remove:
+                # We can't remove all excess silence. Remove as much as allowed.
+                if total_excess > 0:
+                    scale = max_to_remove / total_excess
+                    leading_to_remove = int(leading_excess * scale)
+                    trailing_to_remove = int(max_to_remove - leading_to_remove)
+                else:
+                    leading_to_remove = 0
+                    trailing_to_remove = 0
+                logger.warning(f"  Segment {idx:03d}: partial cropping to maintain {min_duration}s")
             else:
-                logger.warning(f"  Segment {idx:03d}: skipped cropping (would be shorter than {min_duration}s)")
+                leading_to_remove = leading_excess
+                trailing_to_remove = trailing_excess
+
+            actual_start = start + leading_to_remove
+            actual_end = end - trailing_to_remove
             
             if actual_start >= actual_end:
                 logger.warning(f"  Segment {idx:03d}: skipped (cropped to zero length)")
