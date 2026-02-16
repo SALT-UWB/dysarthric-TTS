@@ -29,6 +29,7 @@ def split_recording(
     output_dir: Path, 
     pause_threshold: float = 1.0, 
     min_duration: float = 2.0,
+    max_silence_ms: float = -1.0,
     csv_delimiter: str = ';', 
     expected_sr: int = 24000
 ) -> tuple[int, list[dict[str, Any]]]:
@@ -77,7 +78,7 @@ def split_recording(
         logger.error(err_msg)
         sys.exit(1)
 
-    # 1. Collect potential cut points
+    # 1. Collect potential cut points (sample, is_sentence_boundary)
     candidate_cuts = []
     for i in range(len(df)):
         row = df.iloc[i]
@@ -93,24 +94,25 @@ def split_recording(
             
             pause_dur = samples_to_seconds(int(row['DURATION']), sr)
             if is_sentence_boundary or pause_dur > pause_threshold:
-                candidate_cuts.append(calculate_midpoint(int(row['BEGIN']), int(row['DURATION'])))
+                candidate_cuts.append((calculate_midpoint(int(row['BEGIN']), int(row['DURATION'])), is_sentence_boundary))
 
     # 2. Refine segments (ensure min_duration and presence of speech)
-    segments: list[tuple[int, int]] = []
+    # Each entry: (start, end, ends_at_sentence_boundary)
+    segments: list[tuple[int, int, bool]] = []
     current_start = 0
     
-    for cut in candidate_cuts:
+    for cut, is_boundary in candidate_cuts:
         if cut <= current_start:
             continue
             
         # Check current candidate segment
         seg_dur = samples_to_seconds(cut - current_start, sr)
-        seg_df = df[(df['BEGIN'] + df['DURATION'] > current_start) & (df['BEGIN'] < cut)]
-        has_speech = not seg_df[seg_df['ORT'].str.strip() != '<p:>'].empty if 'ORT' in df.columns else False
+        seg_df_initial = df[(df['BEGIN'] + df['DURATION'] > current_start) & (df['BEGIN'] < cut)]
+        has_speech = not seg_df_initial[seg_df_initial['ORT'].str.strip() != '<p:>'].empty if 'ORT' in df.columns else False
         
         # Only commit cut if segment is valid OR if it's the very last part (handled after loop)
         if seg_dur >= min_duration and has_speech:
-            segments.append((current_start, cut))
+            segments.append((current_start, cut, is_boundary))
             current_start = cut
             
     # Add the remaining tail to the last segment or create new if valid
@@ -120,17 +122,45 @@ def split_recording(
         final_has_speech = not final_df[final_df['ORT'].str.strip() != '<p:>'].empty
         
         if segments and (final_dur < min_duration or not final_has_speech):
-            # Merge with previous
-            prev_start, _ = segments.pop()
-            segments.append((prev_start, total_samples))
+            # Merge with previous; the boundary status of the merged segment is True (end of file)
+            prev_start, _, _ = segments.pop()
+            segments.append((prev_start, total_samples, True))
         else:
-            segments.append((current_start, total_samples))
+            segments.append((current_start, total_samples, True))
 
     # 3. Write segments
     audio, _ = sf.read(str(wav_path))
     processed_segments = []
     
-    for idx, (start, end) in enumerate(segments, 1):
+    max_silence_samples = int((max_silence_ms * sr) / 1000) if max_silence_ms > 0 else -1
+
+    for idx, (start, end, is_boundary) in enumerate(segments, 1):
+        # 3a. Crop leading/trailing silence if requested
+        if max_silence_samples >= 0:
+            # ... (cropping logic remains the same, start/end updated)
+            # (Note: I'll keep the cropping logic as is, but it uses start/end from the loop vars)
+            # Check leading silence
+            r0_mask = (df['BEGIN'] <= start) & (df['BEGIN'] + df['DURATION'] > start)
+            if not df[r0_mask].empty:
+                r0 = df[r0_mask].iloc[0]
+                if r0['MAU'] == '<p:>':
+                    leading_silence = (r0['BEGIN'] + r0['DURATION']) - start
+                    if leading_silence > max_silence_samples:
+                        start = (r0['BEGIN'] + r0['DURATION']) - max_silence_samples
+
+            # Check trailing silence
+            rn_mask = (df['BEGIN'] < end) & (df['BEGIN'] + df['DURATION'] >= end)
+            if not df[rn_mask].empty:
+                rn = df[rn_mask].iloc[-1]
+                if rn['MAU'] == '<p:>':
+                    trailing_silence = end - rn['BEGIN']
+                    if trailing_silence > max_silence_samples:
+                        end = rn['BEGIN'] + max_silence_samples
+            
+            if start >= end:
+                logger.warning(f"Skipping segment {idx} for {stem}: cropped to zero length")
+                continue
+
         seg_suffix = f"{idx:03d}"
         seg_stem = f"{stem}_{seg_suffix}"
         
@@ -177,6 +207,11 @@ def split_recording(
                 words.append(str(fallback_ort))
             
         seg_text = " ".join(words)
+        
+        # Add comma if split in middle of sentence
+        if not is_boundary and seg_text and seg_text[-1] not in ".,!?;:":
+            seg_text += ","
+            
         with open(output_dir / f"{seg_stem}.txt", 'w', encoding='utf-8') as f:
             f.write(seg_text)
             
@@ -200,6 +235,8 @@ def main() -> None:
                         help="Pause threshold in seconds")
     parser.add_argument("--min_duration", type=float, default=2.0, 
                         help="Minimum segment duration in seconds")
+    parser.add_argument("--max_silence_ms", type=float, default=-1.0, 
+                        help="Maximum leading/trailing silence in milliseconds. Default -1 (keep all).")
     parser.add_argument("--csv_delimiter", type=str, default=";", 
                         help="CSV delimiter")
     parser.add_argument("--expected_sr", type=int, default=24000, 
@@ -223,6 +260,7 @@ def main() -> None:
             stem, input_dir, alignment_dir, output_dir,
             pause_threshold=args.pause_threshold,
             min_duration=args.min_duration,
+            max_silence_ms=args.max_silence_ms,
             csv_delimiter=args.csv_delimiter,
             expected_sr=args.expected_sr
         )
