@@ -83,12 +83,12 @@ As a developer, I want clear instructions and a standardized `.venv` setup, so t
 
 ### Functional Requirements
 
-- **FR-001**: System MUST read sampling rate directly from WAV headers using a library like `soundfile` or `librosa`.
-- **FR-002**: System MUST use the WAV sampling rate to convert alignment sample indices to seconds.
-- **FR-003**: The split logic MUST trigger a cut at the midpoint of `<p:>` tokens when followed by an uppercase ORT value.
-- **FR-004**: System MUST trigger a cut on any pause duration > 1.0 second (configurable).
-- **FR-005**: Segmented CSVs MUST preserve all columns from the original header but shift BEGIN values.
-- **FR-006**: The notebook MUST save statistics to a machine-readable JSON/CSV in a `reports/` directory.
+- [x] FR-001: System MUST read sampling rate directly from WAV headers using a library like `soundfile` or `librosa`.
+- [x] FR-002: System MUST use the WAV sampling rate to convert alignment sample indices to seconds.
+- [x] FR-003: The split logic MUST trigger a cut at the midpoint of `<p:>` tokens when followed by an uppercase ORT value.
+- [x] FR-004: System MUST trigger a cut on any pause duration > 1.0 second (configurable).
+- [x] FR-005: Segmented CSVs MUST preserve all columns from the original header but shift BEGIN values.
+- [x] FR-006: The notebook MUST save statistics to a machine-readable JSON/CSV in a `reports/` directory.
 - [x] FR-007: Scripts MUST handle Windows backslashes and POSIX paths transparently.
 - [x] FR-008: System MUST calculate and visualize leading and trailing silence distributions for all segments.
 - [x] FR-009: System MUST map monologue audio IDs to transcripts using the `PCGITAtoPD_mapping.csv` master file.
@@ -97,6 +97,7 @@ As a developer, I want clear instructions and a standardized `.venv` setup, so t
 - [x] FR-012: Silence cropping MUST partially reduce silence proportionally if full cropping violates `--min_duration`.
 - [x] FR-013: System MUST provide an interactive notebook for speaker and segment selection.
 - [x] FR-014: Visualization MUST include synchronized waveform, spectrogram, and boundary markers (phonemes/words).
+- [x] FR-015: System MUST provide detailed per-segment logging including duration, silence info, and transcription text.
 
 ### Key Entities *(include if feature involves data)*
 

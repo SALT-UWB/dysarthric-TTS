@@ -45,6 +45,7 @@ python data_prepare/split_sentences.py `
   - **Duration Safety**: If cropping violates `--min_duration`, silence is reduced **partially** (proportionally) to maintain the minimum length.
   - **Auto-Comma**: If a split happens mid-sentence, a comma is added to the TXT output.
   - **Punctuation**: Preserves punctuation from source TXT files via `TOKEN` mapping.
+  - **Enhanced Logging**: Prints source length, segment count, per-segment duration, silence lengths, and transcription text.
 
 ## Dataset Analysis & Statistics
 
