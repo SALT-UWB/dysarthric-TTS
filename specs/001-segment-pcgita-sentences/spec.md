@@ -38,7 +38,18 @@ As a data scientist, I want to generate a report of the segmented dataset, inclu
 
 ---
 
-### User Story 3 - Reproducible Environment Setup (Priority: P3)
+### User Story 3 - Monologue Transcription Generation (Priority: P2)
+
+As a researcher, I want to automatically generate transcripts for the monologue recordings by mapping them to the provided master metadata, so that I have a complete dataset for the monologue subset.
+
+**Acceptance Scenarios**:
+
+1. **Given** a directory of monologue WAV files, **When** I run the mapping script, **Then** it MUST generate a corresponding TXT file for each WAV.
+2. **Given** raw transcript text, **When** processed, **Then** it MUST be lowercase, have sentence-level capitalization, and no spaces before punctuation.
+
+---
+
+### User Story 4 - Reproducible Environment Setup (Priority: P3)
 
 As a developer, I want clear instructions and a standardized `.venv` setup, so that I can run the preprocessing pipeline consistently across different machines.
 
@@ -71,6 +82,8 @@ As a developer, I want clear instructions and a standardized `.venv` setup, so t
 - **FR-006**: The notebook MUST save statistics to a machine-readable JSON/CSV in a `reports/` directory.
 - [x] FR-007: Scripts MUST handle Windows backslashes and POSIX paths transparently.
 - [x] FR-008: System MUST calculate and visualize leading and trailing silence distributions for all segments.
+- [x] FR-009: System MUST map monologue audio IDs to transcripts using the `PCGITAtoPD_mapping.csv` master file.
+- [x] FR-010: Transcript cleaning MUST enforce lowercase, sentence-start capitalization, and removal of spaces before punctuation.
 
 ### Key Entities *(include if feature involves data)*
 

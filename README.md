@@ -39,6 +39,18 @@ After segmentation, you can use the provided Jupyter notebook to validate the da
   - **Silence Analysis**: Computes and visualizes (via histograms) the distribution of leading and trailing silence across all segments.
   - Generates machine-readable reports in `reports/`.
 
+## Monologue Transcription
+
+For the monologue subset, use the following script to generate normalized transcripts from master metadata:
+
+```powershell
+python data_prepare/get_monologue_transcription.py
+```
+
+- **Inputs**: `datalocal/v260210_24kHz/_metadata/` (mapping and master text).
+- **Outputs**: `.txt` files in `datalocal/v260210_24kHz/monologue/`.
+- **Formatting**: Lowercase, sentence-start capitalization, punctuation spacing correction.
+
 ## Dataset Protection
 
 **CRITICAL**: NEVER commit real PC-GITA audio, transcripts, or metadata to this repository. All raw data should be stored in `datalocal/` which is ignored by git.
