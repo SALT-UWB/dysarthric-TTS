@@ -134,63 +134,70 @@ def split_recording(
     
     max_silence_samples = int((max_silence_ms * sr) / 1000) if max_silence_ms > 0 else -1
 
+    logger.info(f"Processing {stem}: {samples_to_seconds(total_samples, sr):.2f}s, {len(segments)} segments")
+
     for idx, (start, end, is_boundary) in enumerate(segments, 1):
+        actual_start, actual_end = start, end
+        
+        # Calculate original leading silence for this segment (for logging)
+        leading_sil_samples = 0
+        r0_mask = (df['BEGIN'] <= start) & (df['BEGIN'] + df['DURATION'] > start)
+        if not df[r0_mask].empty:
+            r0 = df[r0_mask].iloc[0]
+            if r0['MAU'] == '<p:>':
+                leading_sil_samples = (r0['BEGIN'] + r0['DURATION']) - start
+
+        # Calculate original trailing silence for this segment (for logging)
+        trailing_sil_samples = 0
+        rn_mask = (df['BEGIN'] < end) & (df['BEGIN'] + df['DURATION'] >= end)
+        if not df[rn_mask].empty:
+            rn = df[rn_mask].iloc[-1]
+            if rn['MAU'] == '<p:>':
+                trailing_sil_samples = end - rn['BEGIN']
+
         # 3a. Crop leading/trailing silence if requested
         if max_silence_samples >= 0:
-            # ... (cropping logic remains the same, start/end updated)
-            # (Note: I'll keep the cropping logic as is, but it uses start/end from the loop vars)
-            # Check leading silence
-            r0_mask = (df['BEGIN'] <= start) & (df['BEGIN'] + df['DURATION'] > start)
-            if not df[r0_mask].empty:
-                r0 = df[r0_mask].iloc[0]
-                if r0['MAU'] == '<p:>':
-                    leading_silence = (r0['BEGIN'] + r0['DURATION']) - start
-                    if leading_silence > max_silence_samples:
-                        start = (r0['BEGIN'] + r0['DURATION']) - max_silence_samples
-
-            # Check trailing silence
-            rn_mask = (df['BEGIN'] < end) & (df['BEGIN'] + df['DURATION'] >= end)
-            if not df[rn_mask].empty:
-                rn = df[rn_mask].iloc[-1]
-                if rn['MAU'] == '<p:>':
-                    trailing_silence = end - rn['BEGIN']
-                    if trailing_silence > max_silence_samples:
-                        end = rn['BEGIN'] + max_silence_samples
+            if leading_sil_samples > max_silence_samples:
+                actual_start = (start + leading_sil_samples) - max_silence_samples
+            if trailing_sil_samples > max_silence_samples:
+                actual_end = (end - trailing_sil_samples) + max_silence_samples
             
-            if start >= end:
-                logger.warning(f"Skipping segment {idx} for {stem}: cropped to zero length")
+            if actual_start >= actual_end:
+                logger.warning(f"  Segment {idx:03d}: skipped (cropped to zero length)")
                 continue
 
         seg_suffix = f"{idx:03d}"
         seg_stem = f"{stem}_{seg_suffix}"
         
         # WAV
-        seg_audio = audio[start:end]
+        seg_audio = audio[actual_start:actual_end]
         sf.write(str(output_dir / f"{seg_stem}.wav"), seg_audio, sr)
         
         # CSV (Filtered and Shifted)
-        seg_df = df[(df['BEGIN'] + df['DURATION'] > start) & (df['BEGIN'] < end)].copy()
+        seg_df = df[(df['BEGIN'] + df['DURATION'] > actual_start) & (df['BEGIN'] < actual_end)].copy()
         
         # Clip rows at boundaries and shift
         def clip_and_shift(row: pd.Series) -> pd.Series:
             old_begin = int(row['BEGIN'])
             old_dur = int(row['DURATION'])
-            old_end = old_begin + old_dur
             
             # Clip start
-            new_begin_abs = max(old_begin, start)
+            new_begin_abs = max(old_begin, actual_start)
             # Clip end
-            new_end_abs = min(old_end, end)
+            new_end_abs = min(old_begin + old_dur, actual_end)
             
-            row['BEGIN'] = new_begin_abs - start
+            row['BEGIN'] = new_begin_abs - actual_start
             row['DURATION'] = max(0, new_end_abs - new_begin_abs)
             return row
 
         seg_df = seg_df.apply(clip_and_shift, axis=1)
-        # Remove rows that became 0 duration due to clipping
         seg_df = seg_df[seg_df['DURATION'] > 0]
-        
         seg_df.to_csv(output_dir / f"{seg_stem}.csv", sep=csv_delimiter, index=False)
+        
+        # Log segment details
+        l_ms = (leading_sil_samples / sr) * 1000
+        t_ms = (trailing_sil_samples / sr) * 1000
+        logger.info(f"  Segment {idx:03d}: {samples_to_seconds(actual_end - actual_start, sr):.2f}s (leading sil: {l_ms:.0f}ms, trailing sil: {t_ms:.0f}ms)")
         
         # TXT
         # Get unique TOKEN IDs in this segment (ignoring -1)
@@ -217,9 +224,14 @@ def split_recording(
             
         processed_segments.append({
             'id': seg_stem,
-            'duration_sec': samples_to_seconds(end - start, sr),
+            'duration_sec': samples_to_seconds(actual_end - actual_start, sr),
             'word_count': len(words)
         })
+
+        # Log segment details
+        l_ms = (leading_sil_samples / sr) * 1000
+        t_ms = (trailing_sil_samples / sr) * 1000
+        logger.info(f"  Segment {idx:03d}: {samples_to_seconds(actual_end - actual_start, sr):.2f}s (leading sil: {l_ms:.0f}ms, trailing sil: {t_ms:.0f}ms)")
         
     return len(segments), processed_segments
 
@@ -266,7 +278,6 @@ def main() -> None:
         )
         
         if count > 0:
-            logger.info(f"Processed {stem}: generated {count} segments")
             summary.extend(segments)
         else:
             failed.append(stem)
