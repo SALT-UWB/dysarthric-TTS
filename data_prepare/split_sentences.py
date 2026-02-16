@@ -157,10 +157,20 @@ def split_recording(
 
         # 3a. Crop leading/trailing silence if requested
         if max_silence_samples >= 0:
+            proposed_start = actual_start
+            proposed_end = actual_end
+            
             if leading_sil_samples > max_silence_samples:
-                actual_start = (start + leading_sil_samples) - max_silence_samples
+                proposed_start = (start + leading_sil_samples) - max_silence_samples
             if trailing_sil_samples > max_silence_samples:
-                actual_end = (end - trailing_sil_samples) + max_silence_samples
+                proposed_end = (end - trailing_sil_samples) + max_silence_samples
+            
+            # Check if the cropped segment still meets min_duration
+            if samples_to_seconds(proposed_end - proposed_start, sr) >= min_duration:
+                actual_start = proposed_start
+                actual_end = proposed_end
+            else:
+                logger.warning(f"  Segment {idx:03d}: skipped cropping (would be shorter than {min_duration}s)")
             
             if actual_start >= actual_end:
                 logger.warning(f"  Segment {idx:03d}: skipped (cropped to zero length)")
@@ -194,11 +204,6 @@ def split_recording(
         seg_df = seg_df[seg_df['DURATION'] > 0]
         seg_df.to_csv(output_dir / f"{seg_stem}.csv", sep=csv_delimiter, index=False)
         
-        # Log segment details
-        l_ms = (leading_sil_samples / sr) * 1000
-        t_ms = (trailing_sil_samples / sr) * 1000
-        logger.info(f"  Segment {idx:03d}: {samples_to_seconds(actual_end - actual_start, sr):.2f}s (leading sil: {l_ms:.0f}ms, trailing sil: {t_ms:.0f}ms)")
-        
         # TXT
         # Get unique TOKEN IDs in this segment (ignoring -1)
         seg_token_ids = sorted(seg_df[seg_df['TOKEN'] >= 0]['TOKEN'].unique().tolist())
@@ -231,7 +236,7 @@ def split_recording(
         # Log segment details
         l_ms = (leading_sil_samples / sr) * 1000
         t_ms = (trailing_sil_samples / sr) * 1000
-        logger.info(f"  Segment {idx:03d}: {samples_to_seconds(actual_end - actual_start, sr):.2f}s (leading sil: {l_ms:.0f}ms, trailing sil: {t_ms:.0f}ms)")
+        logger.info(f"  Segment {idx:03d}: {samples_to_seconds(actual_end - actual_start, sr):.2f}s (leading sil: {l_ms:.0f}ms, trailing sil: {t_ms:.0f}ms) - \"{seg_text}\"")
         
     return len(segments), processed_segments
 
