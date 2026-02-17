@@ -107,29 +107,37 @@ def main() -> None:
     wav_files = sorted(list(input_dir.glob("*.wav")))
     
     # Group by speaker/session prefix (e.g. 001PD_S1)
-    # Filename format expected: {prefix}_{index}.wav
     groups = {}
     for wav_path in wav_files:
         stem = wav_path.stem
-        # Split from right once to separate the index/suffix added by split_sentences
         parts = stem.rsplit('_', 1)
         if len(parts) < 2:
-            logger.warning(f"File {wav_path.name} does not follow expected naming convention. Skipping.")
+            logger.debug(f"File {wav_path.name} does not follow expected naming convention (no underscore index). Skipping.")
             continue
             
         prefix = parts[0]
-        if prefix not in groups:
-            groups[prefix] = []
-            
+        
         txt_path = wav_path.with_suffix('.txt')
         csv_path = wav_path.with_suffix('.csv')
         
-        if not (txt_path.exists() and csv_path.exists()):
+        # Fallback for CSV in ali_phoneme subfolder
+        if not csv_path.exists():
+            csv_path = wav_path.parent / "ali_phoneme" / f"{wav_path.stem}.csv"
+        
+        if not txt_path.exists():
+            logger.warning(f"Skipping {stem}: Missing TXT file ({txt_path})")
+            continue
+        if not csv_path.exists():
+            logger.warning(f"Skipping {stem}: Missing CSV file ({csv_path})")
             continue
             
         clean_words = get_word_list(txt_path)
         if not clean_words:
+            logger.warning(f"Skipping {stem}: TXT file is empty or contains no valid words.")
             continue
+            
+        if prefix not in groups:
+            groups[prefix] = []
             
         groups[prefix].append({
             'wav_path': wav_path,
@@ -139,6 +147,10 @@ def main() -> None:
             'word_count': len(clean_words),
             'sr': get_sampling_rate(wav_path)
         })
+
+    if not groups:
+        logger.error("No valid segments found to merge. Check if .txt and .csv files exist alongside .wav files.")
+        return
 
     for prefix, segments in groups.items():
         logger.info(f"Processing prefix {prefix}: {len(segments)} source segments")
