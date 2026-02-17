@@ -33,17 +33,19 @@ def parse_ddk_source(file_path: Path) -> dict[str, list[dict]]:
             i += 1
             continue
             
-        # Check if line is a file code (e.g., AVPEPUDEA0003)
-        if re.match(r'^[A-Z]{10}\d{4}$', line):
+        # Check if line is a file code (e.g., AVPEPUDEA0001)
+        # Relaxed regex: starts with letters, ends with digits, e.g. AVPEPUDEA0001
+        if re.match(r'^[A-Z]+\d+$', line):
             current_code = line
             transcripts[current_code] = []
             i += 1
-            # Skip header line "Start End Transcription" if it exists
-            if i < len(lines) and "Start" in lines[i]:
+            # Skip header line if it follows (case insensitive check)
+            if i < len(lines) and "start" in lines[i].lower() and "transcription" in lines[i].lower():
                 i += 1
             continue
         
         if current_code:
+            # Handle both tabs and spaces
             parts = line.split()
             if len(parts) >= 3:
                 try:
