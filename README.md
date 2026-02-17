@@ -49,6 +49,22 @@ python data_prepare/split_sentences.py `
   - **Punctuation**: Preserves punctuation from source TXT files via `TOKEN` mapping.
   - **Enhanced Logging**: Prints source length, segment count, per-segment duration, silence lengths, and transcription text.
 
+## Segment Merging
+
+Concatenate short segments into larger units (~5 words):
+
+```powershell
+python data_prepare/merge_words.py `
+    --input_dir datalocal/v260210_24kHz/readtext_split `
+    --output_dir datalocal/v260210_24kHz/readtext_merged
+```
+
+- **Logic**: 
+  - Targets 5 words per merged segment.
+  - Ensures a minimum of 4 words (merges leftovers into previous groups).
+  - Synchronizes WAV, TXT, and CSV (shifts alignment timings).
+- **Naming**: `[prefix]_[word1]_[word2]...` (e.g., `001PD_S1_el_medico_fue`).
+
 ## Dataset Analysis & Statistics
 
 After segmentation, you can use the provided Jupyter notebook to validate the data and generate reports:

@@ -73,6 +73,19 @@ As a developer, I want clear instructions and a standardized `.venv` setup, so t
 
 ---
 
+### User Story 6 - Merging Short Segments (Priority: P2)
+
+As a researcher, I want to concatenate short audio segments into longer units of approximately 5 words, so that I can provide more context for TTS training while maintaining manageable file lengths.
+
+**Acceptance Scenarios**:
+
+1. **Given** a directory of short segments, **When** grouped by speaker prefix, **Then** segments MUST be merged until a target of 5 words is reached.
+2. **Given** a remainder of words at the end of a session, **When** the count is less than 4, **Then** those segments MUST be merged into the previous group to ensure a minimum of 4 words.
+3. **Given** merged segments, **When** written to disk, **Then** the filename MUST include the prefix and the individual words joined by underscores.
+4. **Given** merged audio and metadata, **When** saved, **Then** the WAV, TXT, and CSV files MUST be perfectly synchronized.
+
+---
+
 ### Edge Cases
 
 - **Missing Alignment**: How does the system handle a WAV file without a corresponding CSV? (Result: FAIL LOUDLY with log entry).
@@ -101,6 +114,8 @@ As a developer, I want clear instructions and a standardized `.venv` setup, so t
 - [x] FR-015: System MUST provide detailed per-segment logging including duration, silence info, and transcription text.
 - [x] FR-016: System MUST insert a comma in the transcript if the gap between words exceeds 250ms.
 - [x] FR-017: System MUST append a trailing period to transcripts if no other punctuation is present.
+- [x] FR-018: System MUST concatenate short segments into larger units targeting 5 words (minimum 4).
+- [x] FR-019: Merged filenames MUST follow the pattern `[prefix]_[word1]_[word2]...`.
 
 ### Key Entities *(include if feature involves data)*
 
