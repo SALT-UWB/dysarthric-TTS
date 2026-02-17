@@ -62,7 +62,8 @@ python data_prepare/merge_words.py `
 - **Logic**: 
   - Targets 5 words per merged segment.
   - Ensures a minimum of 4 words (merges leftovers into previous groups).
-  - Synchronizes WAV, TXT, and CSV (shifts alignment timings).
+  - Synchronizes WAV, TXT, and CSV (shifts alignment timings and offsets `TOKEN` IDs).
+  - Transcripts are generated with a **dot after every word**.
 - **Naming**: `[prefix]_[word1]_[word2]...` (e.g., `001PD_S1_el_medico_fue`).
 
 ## Dataset Analysis & Statistics
