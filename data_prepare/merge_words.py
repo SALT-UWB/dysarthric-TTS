@@ -79,8 +79,10 @@ def merge_segments(
     
     # 3. Join Text with dot after every word
     # Word blocks (contiguous TOKEN >= 0)
-    word_blocks = merged_csv[merged_csv['TOKEN'] >= 0].groupby(['TOKEN', 'BEGIN'], sort=False).agg({
-        'DURATION': 'sum',
+    # Important: group by block/TOKEN to avoid duplicated ORTs for the same word
+    merged_csv['block'] = (merged_csv['TOKEN'] != merged_csv['TOKEN'].shift()).cumsum()
+    word_blocks = merged_csv[merged_csv['TOKEN'] >= 0].groupby(['block', 'TOKEN'], sort=False).agg({
+        'BEGIN': 'min',
         'ORT': 'first'
     }).reset_index().sort_values('BEGIN')
     
