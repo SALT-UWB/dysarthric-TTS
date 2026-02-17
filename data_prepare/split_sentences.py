@@ -29,6 +29,7 @@ def split_recording(
     output_dir: Path, 
     pause_threshold: float = 1.0, 
     max_sentence_length: float = 15.0,
+    min_duration: float = 2.0,
     min_speech_duration: float = 1.0,
     min_word_count: int = 2,
     max_silence_ms: float = -1.0,
@@ -345,6 +346,8 @@ def main() -> None:
                         help="Pause threshold in seconds")
     parser.add_argument("--max_sentence_length", type=float, default=15.0, 
                         help="Maximum segment duration in seconds")
+    parser.add_argument("--min_duration", type=float, default=2.0, 
+                        help="Minimum total segment duration in seconds (used for cropping safety)")
     parser.add_argument("--min_speech_duration", type=float, default=1.0, 
                         help="Minimum speech duration (excluding pauses) in seconds")
     parser.add_argument("--min_word_count", type=int, default=2, 
@@ -374,6 +377,7 @@ def main() -> None:
             stem, input_dir, alignment_dir, output_dir,
             pause_threshold=args.pause_threshold,
             max_sentence_length=args.max_sentence_length,
+            min_duration=args.min_duration,
             min_speech_duration=args.min_speech_duration,
             min_word_count=args.min_word_count,
             max_silence_ms=args.max_silence_ms,
