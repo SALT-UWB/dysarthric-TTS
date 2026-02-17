@@ -80,6 +80,20 @@ python data_prepare/get_monologue_transcription.py
 - **Outputs**: `.txt` files in `datalocal/v260210_24kHz/monologue/`.
 - **Formatting**: Lowercase, sentence-start capitalization, punctuation spacing correction.
 
+## DDK Transcription
+
+Generate transcripts for DDK recordings with syllable-level gap analysis:
+
+```powershell
+python data_prepare/get_ddk_transcription.py
+```
+
+- **Logic**: 
+  - Maps speaker IDs (e.g., `001PD`) to transcript IDs via mapping CSV.
+  - Inserts commas if the gap between syllable segments > 200ms.
+  - Normalizes to lowercase and adds a trailing period.
+- **Inputs**: `datalocal/v260210_24kHz/ddk/` and `_metadata/DDK[1-3].txt`.
+
 ## Dataset Protection
 
 **CRITICAL**: NEVER commit real PC-GITA audio, transcripts, or metadata to this repository. All raw data should be stored in `datalocal/` which is ignored by git.
