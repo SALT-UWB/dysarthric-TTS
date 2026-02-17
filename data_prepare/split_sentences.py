@@ -90,9 +90,17 @@ def split_recording(
             is_nsb = False
             for j in range(i + 1, len(df)):
                 if df.iloc[j]['MAU'] != '<p:>':
-                    ort = str(df.iloc[j]['ORT'])
-                    if ort and ort[0].isupper():
-                        is_nsb = True
+                    tid = int(df.iloc[j]['TOKEN'])
+                    # Use source_words for capitalization check if possible
+                    if 0 <= tid < len(source_words):
+                        w = source_words[tid]
+                        if w and w[0].isupper():
+                            is_nsb = True
+                    else:
+                        # Fallback to ORT
+                        ort = str(df.iloc[j]['ORT'])
+                        if ort and ort[0].isupper():
+                            is_nsb = True
                     break
             
             # Comma Check (word before this pause)
@@ -168,7 +176,21 @@ def split_recording(
                 if split_found: break
             
             if not split_found:
-                refined_units.append((s, e, b))
+                # If still too long, split at the largest available pause in the middle area
+                pauses = df[(df['MAU'] == '<p:>') & (df['BEGIN'] > s) & (df['BEGIN'] + df['DURATION'] < e)]
+                if not pauses.empty:
+                    # Sort by duration descending
+                    pauses = pauses.sort_values('DURATION', ascending=False)
+                    best_pause = pauses.iloc[0]
+                    mid_p = calculate_midpoint(int(best_pause['BEGIN']), int(best_pause['DURATION']))
+                    
+                    stack.append((mid_p, e, b))
+                    stack.append((s, mid_p, False))
+                else:
+                    # Absolute fallback: force split in the middle
+                    mid_abs = s + (e - s) // 2
+                    stack.append((mid_abs, e, b))
+                    stack.append((s, mid_abs, False))
 
     # Final Merge Pass for invalid segments
     refined_units.sort(key=lambda x: x[0])
@@ -176,12 +198,19 @@ def split_recording(
     
     for s, e, b in refined_units:
         w, sp = get_seg_stats(s, e)
+        # Check if merging with previous would violate max_sentence_length
         if w >= min_word_count and sp >= min_speech_duration:
             segments.append((s, e, b))
         else:
             if segments:
-                ls, le, lb = segments.pop()
-                segments.append((ls, e, b))
+                ls, le, lb = segments[-1]
+                merged_dur = samples_to_seconds(e - ls, sr)
+                if merged_dur <= max_sentence_length:
+                    segments.pop()
+                    segments.append((ls, e, b))
+                else:
+                    # Cannot merge without violating length, keep as is
+                    segments.append((s, e, b))
             else:
                 segments.append((s, e, b))
 
