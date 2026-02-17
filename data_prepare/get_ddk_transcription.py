@@ -119,6 +119,7 @@ def process_ddk(
         # 3. Join with comma logic
         words = []
         prev_end = None
+        has_long_pause = False
         
         for seg in segments:
             word = seg['text']
@@ -129,6 +130,7 @@ def process_ddk(
                 gap = seg['start'] - prev_end
                 if gap > 0.200: # > 200ms
                     words.append(",")
+                    has_long_pause = True
             
             words.append(word)
             prev_end = seg['end']
@@ -144,6 +146,10 @@ def process_ddk(
         output_txt = wav_file.with_suffix('.txt')
         with open(output_txt, 'w', encoding='utf-8') as f:
             f.write(transcript)
+        
+        # Log details
+        pause_info = " [LONG PAUSE DETECTED -> COMMA ADDED]" if has_long_pause else ""
+        logger.info(f"Processed {wav_file.name}: {transcript}{pause_info}")
         count += 1
         
     logger.info(f"Successfully generated {count} transcription files.")
