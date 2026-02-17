@@ -68,7 +68,7 @@ python data_prepare/merge_words.py `
   - Ensures a minimum of 4 words (merges leftovers into previous groups).
   - Synchronizes WAV, TXT, and CSV (shifts alignment timings and offsets `TOKEN` IDs).
   - Transcripts are generated with a **dot after every word**.
-- **Naming**: `[prefix]_[word1]_[word2]...` (e.g., `001PD_S1_el_medico_fue`).
+- **Naming**: `[prefix]_[word1]_[word2]...` (e.g., `001PD_S1_el_medico_fue`). Filenames are normalized to **ASCII** (accents removed) for filesystem compatibility, while `.txt` and `.csv` contents preserve original Spanish characters.
 
 ## Dataset Analysis & Statistics
 

@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import soundfile as sf
 import re
+import unicodedata
 
 # Add root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -15,17 +16,27 @@ from data_prepare.utils import ensure_dir, setup_logging
 
 logger = setup_logging(__name__)
 
+def remove_accents(input_str: str) -> str:
+    """Normalizes string to ASCII by removing accents."""
+    nfkd_form = unicodedata.normalize('NFKD', input_str)
+    return "".join([c for c in nfkd_form if not unicodedata.combining(c)])
+
 def get_word_list(txt_path: Path) -> list[str]:
-    """Reads words from a text file, stripping trailing punctuation for naming."""
+    """Reads words from a text file, converting to ASCII for naming."""
     try:
         with open(txt_path, 'r', encoding='utf-8') as f:
             text = f.read()
-            # Split by whitespace, then clean each word for filename use
+            # Split by whitespace
             words = text.split()
-            # Preserve alphanumeric and common Spanish characters
-            # Spanish: á, é, í, ó, ú, ñ, ü (lowercase and uppercase)
-            clean_words = [re.sub(r'[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ]', '', w) for w in words]
-            return [w for w in clean_words if w]
+            # Convert to ASCII (remove accents), then clean for filename
+            clean_words = []
+            for w in words:
+                ascii_w = remove_accents(w)
+                # Keep only alphanumeric for filename safety
+                cleaned = re.sub(r'[^a-zA-Z0-9]', '', ascii_w)
+                if cleaned:
+                    clean_words.append(cleaned)
+            return clean_words
     except Exception as e:
         logger.error(f"Error reading {txt_path}: {e}")
         return []
