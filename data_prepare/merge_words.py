@@ -22,8 +22,9 @@ def get_word_list(txt_path: Path) -> list[str]:
             text = f.read()
             # Split by whitespace, then clean each word for filename use
             words = text.split()
-            # Remove characters not allowed in filenames or that are just punctuation
-            clean_words = [re.sub(r'[^a-zA-Z0-9]', '', w) for w in words]
+            # Preserve alphanumeric and common Spanish characters
+            # Spanish: á, é, í, ó, ú, ñ, ü (lowercase and uppercase)
+            clean_words = [re.sub(r'[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ]', '', w) for w in words]
             return [w for w in clean_words if w]
     except Exception as e:
         logger.error(f"Error reading {txt_path}: {e}")
