@@ -93,7 +93,7 @@ python data_prepare/get_ddk_transcription.py
   - Inserts commas if the gap between syllable segments > threshold.
   - Normalizes to lowercase and adds a trailing period.
 - **Arguments**:
-  - `--pause_threshold_ms`: Gap threshold in ms to insert a comma (default: 200.0).
+  - `--pause_threshold_ms`: Gap threshold in ms to insert a comma (default: 300.0).
   - `--no_lowercase`: Disable lowercase conversion.
 - **Inputs**: `datalocal/v260210_24kHz/ddk/` and `_metadata/DDK[1-3].txt`.
 

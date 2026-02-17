@@ -67,7 +67,7 @@ def process_ddk(
     mapping_path: str,
     metadata_dir: str,
     lowercase: bool = True,
-    pause_threshold_ms: float = 200.0
+    pause_threshold_ms: float = 300.0
 ) -> None:
     input_path = Path(input_dir)
     mapping_file = Path(mapping_path)
@@ -166,8 +166,8 @@ def main() -> None:
                         help="Directory containing DDK1.txt, DDK2.txt, DDK3.txt")
     parser.add_argument("--no_lowercase", action="store_true",
                         help="Do not convert text to lowercase")
-    parser.add_argument("--pause_threshold_ms", type=float, default=200.0,
-                        help="Gap threshold in ms to insert a comma (default: 200.0)")
+    parser.add_argument("--pause_threshold_ms", type=float, default=300.0,
+                        help="Gap threshold in ms to insert a comma (default: 300.0)")
     
     args = parser.parse_args()
     
