@@ -36,14 +36,14 @@ Split recordings into sentences based on phoneme alignment:
 python data_prepare/split_sentences.py `
     --input_dir datalocal/v260210_24kHz/readtext `
     --output_dir datalocal/v260210_24kHz/readtext_split `
-    --max_sentence_length 15.0 `
+    --max_sentence_length 10.0 `
     --min_speech_duration 1.0 `
     --min_word_count 2
 ```
 
 - **Core Logic**: 
   - Prioritizes keeping sentences together (Pause + Uppercase).
-  - If a sentence > 15s, it breaks it up using **commas** (first) or **long pauses** (second).
+  - If a sentence > 10s, it breaks it up using **commas** (first) or **long pauses** (second).
   - Enforces minimum constraints (>= 2 words, >= 1s speech) via automatic merging.
 - **New Features**:
   - **Silence Cropping**: `--max_silence_ms` clips leading/trailing silence.
