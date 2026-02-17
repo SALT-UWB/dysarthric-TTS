@@ -36,16 +36,39 @@ Split recordings into sentences based on phoneme alignment:
 python data_prepare/split_sentences.py `
     --input_dir datalocal/v260210_24kHz/readtext `
     --output_dir datalocal/v260210_24kHz/readtext_split `
-    --max_silence_ms 500
+    --max_sentence_length 10.0 `
+    --min_speech_duration 1.0 `
+    --min_word_count 2
 ```
 
-- **Core Logic**: Splits at midpoints of pauses (`<p:>`) if followed by a capital letter or if the pause exceeds `--pause_threshold`.
+- **Core Logic**: 
+  - Prioritizes keeping sentences together (Pause + Uppercase).
+  - If a sentence > 10s, it breaks it up using **commas** (first) or **long pauses** (second).
+  - Enforces minimum constraints (>= 2 words, >= 1s speech) via automatic merging.
 - **New Features**:
-  - **Silence Cropping**: `--max_silence_ms` clips leading/trailing silence (WAV and CSV synced).
-  - **Duration Safety**: If cropping violates `--min_duration`, silence is reduced **partially** (proportionally) to maintain the minimum length.
-  - **Auto-Comma**: If a split happens mid-sentence, a comma is added to the TXT output.
-  - **Punctuation**: Preserves punctuation from source TXT files via `TOKEN` mapping.
-  - **Enhanced Logging**: Prints source length, segment count, per-segment duration, silence lengths, and transcription text.
+  - **Silence Cropping**: `--max_silence_ms` clips leading/trailing silence.
+  - **Duration Safety**: If cropping violates constraints, silence is reduced partially.
+  - **Auto-Comma**: If a split happens mid-sentence, a comma is added.
+  - **Internal Comma**: If a gap between words exceeds 250ms, a comma is inserted.
+  - **Trailing Dot**: Transcripts automatically end with a period.
+  - **Enhanced Logging**: Prints duration, speech info, and transcription text.
+
+## Segment Merging
+
+Concatenate short segments into larger units (~5 words):
+
+```powershell
+python data_prepare/merge_words.py `
+    --input_dir datalocal/v260210_24kHz/readtext_split `
+    --output_dir datalocal/v260210_24kHz/readtext_merged
+```
+
+- **Logic**: 
+  - Targets 5 words per merged segment.
+  - Ensures a minimum of 4 words (merges leftovers into previous groups).
+  - Synchronizes WAV, TXT, and CSV (shifts alignment timings and offsets `TOKEN` IDs).
+  - Transcripts are generated with a **dot after every word**.
+- **Naming**: `[prefix]_[word1]_[word2]...` (e.g., `001PD_S1_el_medico_fue`). Filenames are normalized to **ASCII** (accents removed) for filesystem compatibility, while `.txt` and `.csv` contents preserve original Spanish characters.
 
 ## Dataset Analysis & Statistics
 

@@ -83,6 +83,10 @@ description: "Task list for Phase-1 sentence splitting implementation"
 - [x] T019 [US3] Implement monologue-to-PD mapping logic in `get_monologue_transcription.py`
 - [x] T020 [US3] Implement sentence-level capitalization and text normalization for monologue transcripts
 - [x] T021 [US2] Implement interactive alignment verification notebook `check_alignment.ipynb`
+- [x] T022 [US1] Implement sentence-focused splitting with 15s limit and comma/pause sub-splitting
+- [x] T023 [US6] Implement `merge_words.py` for concatenating short segments with word count constraints
+- [x] T024 [US6] Ensure unique `TOKEN` IDs during segment merging
+- [x] T025 [US6] Implement dot-per-word punctuation in merged transcripts
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently.
 

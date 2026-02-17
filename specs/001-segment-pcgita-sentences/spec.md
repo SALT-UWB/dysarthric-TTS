@@ -7,16 +7,16 @@
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Deterministic Sentence Splitting (Priority: P1)
+### User Story 1 - Smart Sentence Splitting (Priority: P1)
 
-As a researcher, I want to split long audio recordings into individual sentences based on phoneme alignment metadata, so that I can prepare a clean dataset for TTS training.
+As a researcher, I want to split long audio recordings into sentences, keeping them whole unless they are too long, so that I can provide natural training units for TTS.
 
 **Acceptance Scenarios**:
 
-1. **Given** a WAV file and a corresponding alignment CSV, **When** the script detects a pause token followed by a capitalized word, **Then** it MUST cut the audio and metadata at the midpoint of that pause.
-2. **Given** a segment starting at sample X, **When** the segmented CSV is written, **Then** all BEGIN sample values MUST be shifted by -X so the segment starts at 0.
-3. **Given** a split occurring at a long pause that is NOT a sentence boundary, **When** the TXT is generated, **Then** a comma MUST be appended to the transcript.
-4. **Given** the `--max_silence_ms` flag, **When** cropping would reduce duration below `--min_duration`, **Then** the script MUST partially crop silence proportionally to maintain the minimum duration.
+1. **Given** a recording, **When** processed, **Then** the script MUST prioritize keeping whole sentences (Pause + Uppercase) together.
+2. **Given** a sentence longer than 10s, **When** splitting is required, **Then** it MUST attempt to split at a comma first, then a long pause.
+3. **Given** any output segment, **When** generated, **Then** it MUST contain at least 2 words and 1 second of speech (excluding pauses).
+4. **Given** a segment that fails constraints, **When** processed, **Then** it MUST be merged with its neighbor.
 
 ---
 
@@ -72,6 +72,20 @@ As a developer, I want clear instructions and a standardized `.venv` setup, so t
 
 ---
 
+### User Story 6 - Merging Short Segments (Priority: P2)
+
+As a researcher, I want to concatenate short audio segments into longer units of approximately 5 words, so that I can provide more context for TTS training while maintaining manageable file lengths.
+
+**Acceptance Scenarios**:
+
+1. **Given** a directory of short segments, **When** grouped by speaker prefix, **Then** segments MUST be merged until a target of 5 words is reached.
+2. **Given** a remainder of words at the end of a session, **When** the count is less than 4, **Then** those segments MUST be merged into the previous group to ensure a minimum of 4 words.
+3. **Given** merged segments, **When** written to disk, **Then** the filename MUST include the prefix and the individual words (converted to ASCII) joined by underscores.
+4. **Given** merged audio and metadata, **When** saved, **Then** the WAV, TXT, and CSV files MUST be perfectly synchronized, with `TOKEN` IDs incremented to remain unique across the merged units.
+5. **Given** merged transcripts, **When** generated, **Then** every word MUST be followed by a period.
+
+---
+
 ### Edge Cases
 
 - **Missing Alignment**: How does the system handle a WAV file without a corresponding CSV? (Result: FAIL LOUDLY with log entry).
@@ -98,6 +112,16 @@ As a developer, I want clear instructions and a standardized `.venv` setup, so t
 - [x] FR-013: System MUST provide an interactive notebook for speaker and segment selection.
 - [x] FR-014: Visualization MUST include synchronized waveform, spectrogram, and boundary markers (phonemes/words).
 - [x] FR-015: System MUST provide detailed per-segment logging including duration, silence info, and transcription text.
+- [x] FR-016: System MUST insert a comma in the transcript if the gap between words exceeds 250ms.
+- [x] FR-017: System MUST append a trailing period to transcripts if no other punctuation is present.
+- [x] FR-018: System MUST concatenate short segments into larger units targeting 5 words (minimum 4).
+- [x] FR-019: Merged filenames MUST follow the pattern `[prefix]_[word1]_[word2]...` using ASCII characters.
+- [x] FR-020: System MUST ensure `TOKEN` IDs are unique across merged segments by applying offsets.
+- [x] FR-021: Merged transcripts MUST contain a dot after every word and preserve original Spanish characters.
+- [x] FR-022: System MUST prioritize keeping sentences together and only sub-split if duration > `--max_sentence_length` (default 10s).
+- [x] FR-023: Sub-splitting MUST favor commas as primary internal boundaries, followed by long pauses, then forced midpoint pauses.
+- [x] FR-024: System MUST enforce minimum content constraints (2 words, 1s speech) per output segment via merging.
+- [x] FR-025: System MUST convert Spanish characters to ASCII equivalents for filenames during segment merging.
 
 ### Key Entities *(include if feature involves data)*
 
