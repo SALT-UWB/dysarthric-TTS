@@ -77,36 +77,21 @@ def merge_segments(
     # 2. Join CSV
     merged_csv = pd.concat(all_csv, ignore_index=True)
     
-    # 3. Join Text with Gap Logic
-    # We re-evaluate gaps in the merged CSV to decide on commas
+    # 3. Join Text with dot after every word
     # Word blocks (contiguous TOKEN >= 0)
     word_blocks = merged_csv[merged_csv['TOKEN'] >= 0].groupby(['TOKEN', 'BEGIN'], sort=False).agg({
         'DURATION': 'sum',
         'ORT': 'first'
     }).reset_index().sort_values('BEGIN')
     
-    # Map words (we'll use the ORT from the CSV for merged segments to stay safe, 
-    # but we could also reconstruct from source_words if needed. 
-    # Here we follow the text segments logic)
-    
     final_words = []
     for i in range(len(word_blocks)):
         word_text = str(word_blocks.iloc[i]['ORT'])
-        final_words.append(word_text)
-        
-        # Check gap to next word
-        if i < len(word_blocks) - 1:
-            curr_end = word_blocks.iloc[i]['BEGIN'] + word_blocks.iloc[i]['DURATION']
-            next_start = word_blocks.iloc[i+1]['BEGIN']
-            gap_sec = float(next_start - curr_end) / sr
-            
-            if gap_sec >= 0.250:
-                if not final_words[-1].endswith(','):
-                    final_words[-1] += ","
+        # Strip any existing punctuation to ensure clean "word." format
+        word_text = word_text.rstrip('.,!?;:')
+        final_words.append(word_text + ".")
 
     merged_txt = " ".join(final_words)
-    if not merged_txt.endswith('.'):
-        merged_txt += "."
     
     # 4. Generate Name
     words_part = "_".join(all_words_for_name)
