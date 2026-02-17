@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def parse_ddk_source(file_path: Path) -> dict[str, list[dict]]:
     """
     Parses DDK source files (DDK1.txt etc.) which have sections per file:
-    AVPEPUDEA0003
+    AVPEPUDEA0001
     Start End Transcription
     0 0.631 Petaka
     ...
@@ -34,7 +34,6 @@ def parse_ddk_source(file_path: Path) -> dict[str, list[dict]]:
             continue
             
         # Check if line is a file code (e.g., AVPEPUDEA0001)
-        # Relaxed regex: starts with letters, ends with digits, e.g. AVPEPUDEA0001
         if re.match(r'^[A-Z]+\d+$', line):
             current_code = line
             transcripts[current_code] = []
@@ -74,15 +73,61 @@ def process_ddk(
     mapping_file = Path(mapping_path)
     meta_path = Path(metadata_dir)
     
-    # ... (skipping unchanged code)
+    if not mapping_file.exists():
+        logger.error(f"Mapping file not found: {mapping_file}")
+        return
+
+    # Load mapping: CODE;CODE4JHU;Code BD-Parkinson;...
+    mapping_df = pd.read_csv(mapping_file, sep=';')
+    # Create lookup: Code BD-Parkinson -> CODE
+    lookup = dict(zip(mapping_df['Code BD-Parkinson'], mapping_df['CODE']))
+    
+    # Load DDK source transcripts
+    ddk_sources = {
+        'DDK1': parse_ddk_source(meta_path / "DDK1.txt"),
+        'DDK2': parse_ddk_source(meta_path / "DDK2.txt"),
+        'DDK3': parse_ddk_source(meta_path / "DDK3.txt")
+    }
     
     wav_files = list(input_path.glob("*.wav"))
     logger.info(f"Found {len(wav_files)} WAV files in {input_dir}")
     
     pause_threshold_sec = pause_threshold_ms / 1000.0
-    
     count = 0
-    # ... (skipping to the loop logic)
+    
+    for wav_file in wav_files:
+        # Example name: 001PD_S1_DDK1.wav
+        parts = wav_file.stem.split('_')
+        if len(parts) < 3:
+            continue
+            
+        speaker_id = parts[0]
+        ddk_type = parts[2] # DDK1, DDK2, or DDK3
+        
+        # 1. Map speaker_id (001PD) to code (AVPE...)
+        code = lookup.get(speaker_id)
+        if not code:
+            logger.warning(f"No mapping found for speaker {speaker_id} ({wav_file.name})")
+            continue
+            
+        # 2. Get segments for this code and DDK type
+        source_data = ddk_sources.get(ddk_type, {})
+        segments = source_data.get(code)
+        
+        if not segments:
+            logger.warning(f"No transcript found for {code} in {ddk_type} ({wav_file.name})")
+            continue
+            
+        # 3. Join with comma logic
+        words = []
+        prev_end = None
+        has_long_pause = False
+        
+        for seg in segments:
+            word = seg['text']
+            if lowercase:
+                word = word.lower()
+                
             if prev_end is not None:
                 gap = seg['start'] - prev_end
                 if gap > pause_threshold_sec:
