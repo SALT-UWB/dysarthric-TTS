@@ -7,17 +7,16 @@
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Deterministic Sentence Splitting (Priority: P1)
+### User Story 1 - Smart Sentence Splitting (Priority: P1)
 
-As a researcher, I want to split long audio recordings into individual sentences based on phoneme alignment metadata, so that I can prepare a clean dataset for TTS training.
+As a researcher, I want to split long audio recordings into sentences, keeping them whole unless they are too long, so that I can provide natural training units for TTS.
 
 **Acceptance Scenarios**:
 
-1. **Given** a WAV file and a corresponding alignment CSV, **When** the script detects a pause token followed by a capitalized word, **Then** it MUST cut the audio and metadata at the midpoint of that pause.
-2. **Given** a segment starting at sample X, **When** the segmented CSV is written, **Then** all BEGIN sample values MUST be shifted by -X so the segment starts at 0.
-3. **Given** a split occurring at a long pause that is NOT a sentence boundary, **When** the TXT is generated, **Then** a comma MUST be appended to the transcript.
-5. **Given** a generated transcript, **When** the gap between words exceeds 250ms, **Then** a comma MUST be inserted after the preceding word.
-6. **Given** a final transcript, **When** no punctuation is present at the end, **Then** a period MUST be appended.
+1. **Given** a recording, **When** processed, **Then** the script MUST prioritize keeping whole sentences (Pause + Uppercase) together.
+2. **Given** a sentence longer than 15s, **When** splitting is required, **Then** it MUST attempt to split at a comma first, then a long pause.
+3. **Given** any output segment, **When** generated, **Then** it MUST contain at least 2 words and 1 second of speech (excluding pauses).
+4. **Given** a segment that fails constraints, **When** processed, **Then** it MUST be merged with its neighbor.
 
 ---
 
@@ -119,6 +118,9 @@ As a researcher, I want to concatenate short audio segments into longer units of
 - [x] FR-019: Merged filenames MUST follow the pattern `[prefix]_[word1]_[word2]...` and preserve Spanish characters.
 - [x] FR-020: System MUST ensure `TOKEN` IDs are unique across merged segments by applying offsets.
 - [x] FR-021: Merged transcripts MUST contain a dot after every word.
+- [x] FR-022: System MUST prioritize keeping sentences together and only sub-split if duration > `--max_sentence_length`.
+- [x] FR-023: Sub-splitting MUST favor commas as primary internal boundaries, followed by long pauses.
+- [x] FR-024: System MUST enforce minimum content constraints (2 words, 1s speech) per output segment via merging.
 
 ### Key Entities *(include if feature involves data)*
 
