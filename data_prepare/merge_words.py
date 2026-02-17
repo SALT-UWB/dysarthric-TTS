@@ -46,6 +46,7 @@ def merge_segments(
     all_words_for_name = []
     
     current_offset_samples = 0
+    current_token_offset = 0
     sr = segments[0]['sr']
 
     for seg in segments:
@@ -56,7 +57,6 @@ def merge_segments(
         # Text
         with open(seg['txt_path'], 'r', encoding='utf-8') as f:
             txt = f.read().strip()
-            # Remove trailing dot for internal merging if it exists
             if txt.endswith('.'):
                 txt = txt[:-1]
             all_txt_segments.append(txt)
@@ -66,10 +66,19 @@ def merge_segments(
         
         # CSV (Alignment)
         df = pd.read_csv(seg['csv_path'], sep=csv_delimiter)
+        
+        # Shift timings
         df['BEGIN'] = df['BEGIN'] + current_offset_samples
+        
+        # Shift TOKEN IDs (only for real words >= 0) to keep them unique across segments
+        max_token_in_seg = df['TOKEN'].max()
+        df.loc[df['TOKEN'] >= 0, 'TOKEN'] = df.loc[df['TOKEN'] >= 0, 'TOKEN'] + current_token_offset
+        
         all_csv.append(df)
         
         current_offset_samples += len(audio)
+        if max_token_in_seg >= 0:
+            current_token_offset += (max_token_in_seg + 1)
 
     # 1. Join Audio
     merged_audio = np.concatenate(all_audio)
