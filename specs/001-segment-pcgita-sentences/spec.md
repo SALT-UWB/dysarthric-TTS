@@ -14,7 +14,7 @@ As a researcher, I want to split long audio recordings into sentences, keeping t
 **Acceptance Scenarios**:
 
 1. **Given** a recording, **When** processed, **Then** the script MUST prioritize keeping whole sentences (Pause + Uppercase) together.
-2. **Given** a sentence longer than 15s, **When** splitting is required, **Then** it MUST attempt to split at a comma first, then a long pause.
+2. **Given** a sentence longer than 10s, **When** splitting is required, **Then** it MUST attempt to split at a comma first, then a long pause.
 3. **Given** any output segment, **When** generated, **Then** it MUST contain at least 2 words and 1 second of speech (excluding pauses).
 4. **Given** a segment that fails constraints, **When** processed, **Then** it MUST be merged with its neighbor.
 
