@@ -112,6 +112,11 @@ def merge_segments(
     sf.write(str(output_dir / f"{merged_stem}.wav"), merged_audio, sr)
     with open(output_dir / f"{merged_stem}.txt", 'w', encoding='utf-8') as f:
         f.write(merged_txt)
+        
+    # Drop temporary column used for grouping
+    if 'block' in merged_csv.columns:
+        merged_csv = merged_csv.drop(columns=['block'])
+        
     merged_csv.to_csv(output_dir / f"{merged_stem}.csv", sep=csv_delimiter, index=False)
     
     logger.info(f"Generated merged segment: {merged_stem} ({len(all_words_for_name)} words)")
