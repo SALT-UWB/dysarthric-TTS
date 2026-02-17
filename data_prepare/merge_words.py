@@ -110,13 +110,21 @@ def main() -> None:
     groups = {}
     for wav_path in wav_files:
         stem = wav_path.stem
-        parts = stem.rsplit('_', 1)
-        if len(parts) < 2:
-            logger.debug(f"File {wav_path.name} does not follow expected naming convention (no underscore index). Skipping.")
-            continue
+        # Logic: prefix is everything before the last underscore, 
+        # but we want to be specific: 001PD_S1_word.wav -> prefix is 001PD_S1
+        # We find the position of the second underscore from the left
+        parts = stem.split('_')
+        if len(parts) < 3:
+            # Fallback: if there's only one underscore, take everything before it
+            if len(parts) == 2:
+                prefix = parts[0]
+            else:
+                logger.warning(f"File {wav_path.name} does not follow expected naming convention. Skipping.")
+                continue
+        else:
+            # Join the first two parts (e.g., 001PD and S1)
+            prefix = f"{parts[0]}_{parts[1]}"
             
-        prefix = parts[0]
-        
         txt_path = wav_path.with_suffix('.txt')
         csv_path = wav_path.with_suffix('.csv')
         
