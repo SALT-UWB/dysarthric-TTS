@@ -40,7 +40,7 @@ def merge_segments(
         return
 
     all_audio = []
-    all_txt = []
+    all_txt_segments = []
     all_csv = []
     all_words_for_name = []
     
@@ -54,7 +54,11 @@ def merge_segments(
         
         # Text
         with open(seg['txt_path'], 'r', encoding='utf-8') as f:
-            all_txt.append(f.read().strip())
+            txt = f.read().strip()
+            # Remove trailing dot for internal merging if it exists
+            if txt.endswith('.'):
+                txt = txt[:-1]
+            all_txt_segments.append(txt)
         
         # Word list for name
         all_words_for_name.extend(seg['clean_words'])
@@ -69,23 +73,48 @@ def merge_segments(
     # 1. Join Audio
     merged_audio = np.concatenate(all_audio)
     
-    # 2. Join Text
-    merged_txt = " ".join(all_txt)
-    
-    # 3. Join CSV
+    # 2. Join CSV
     merged_csv = pd.concat(all_csv, ignore_index=True)
     
+    # 3. Join Text with Gap Logic
+    # We re-evaluate gaps in the merged CSV to decide on commas
+    # Word blocks (contiguous TOKEN >= 0)
+    word_blocks = merged_csv[merged_csv['TOKEN'] >= 0].groupby(['TOKEN', 'BEGIN'], sort=False).agg({
+        'DURATION': 'sum',
+        'ORT': 'first'
+    }).reset_index().sort_values('BEGIN')
+    
+    # Map words (we'll use the ORT from the CSV for merged segments to stay safe, 
+    # but we could also reconstruct from source_words if needed. 
+    # Here we follow the text segments logic)
+    
+    final_words = []
+    for i in range(len(word_blocks)):
+        word_text = str(word_blocks.iloc[i]['ORT'])
+        final_words.append(word_text)
+        
+        # Check gap to next word
+        if i < len(word_blocks) - 1:
+            curr_end = word_blocks.iloc[i]['BEGIN'] + word_blocks.iloc[i]['DURATION']
+            next_start = word_blocks.iloc[i+1]['BEGIN']
+            gap_sec = float(next_start - curr_end) / sr
+            
+            if gap_sec >= 0.250:
+                if not final_words[-1].endswith(','):
+                    final_words[-1] += ","
+
+    merged_txt = " ".join(final_words)
+    if not merged_txt.endswith('.'):
+        merged_txt += "."
+    
     # 4. Generate Name
-    # Prefix + underscore joined words
     words_part = "_".join(all_words_for_name)
     merged_stem = f"{prefix}_{words_part}"
     
     # Write files
     sf.write(str(output_dir / f"{merged_stem}.wav"), merged_audio, sr)
-    
     with open(output_dir / f"{merged_stem}.txt", 'w', encoding='utf-8') as f:
         f.write(merged_txt)
-        
     merged_csv.to_csv(output_dir / f"{merged_stem}.csv", sep=csv_delimiter, index=False)
     
     logger.info(f"Generated merged segment: {merged_stem} ({len(all_words_for_name)} words)")
