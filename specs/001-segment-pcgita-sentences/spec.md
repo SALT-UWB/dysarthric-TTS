@@ -16,7 +16,8 @@ As a researcher, I want to split long audio recordings into individual sentences
 1. **Given** a WAV file and a corresponding alignment CSV, **When** the script detects a pause token followed by a capitalized word, **Then** it MUST cut the audio and metadata at the midpoint of that pause.
 2. **Given** a segment starting at sample X, **When** the segmented CSV is written, **Then** all BEGIN sample values MUST be shifted by -X so the segment starts at 0.
 3. **Given** a split occurring at a long pause that is NOT a sentence boundary, **When** the TXT is generated, **Then** a comma MUST be appended to the transcript.
-4. **Given** the `--max_silence_ms` flag, **When** cropping would reduce duration below `--min_duration`, **Then** the script MUST partially crop silence proportionally to maintain the minimum duration.
+5. **Given** a generated transcript, **When** the gap between words exceeds 250ms, **Then** a comma MUST be inserted after the preceding word.
+6. **Given** a final transcript, **When** no punctuation is present at the end, **Then** a period MUST be appended.
 
 ---
 
@@ -98,6 +99,8 @@ As a developer, I want clear instructions and a standardized `.venv` setup, so t
 - [x] FR-013: System MUST provide an interactive notebook for speaker and segment selection.
 - [x] FR-014: Visualization MUST include synchronized waveform, spectrogram, and boundary markers (phonemes/words).
 - [x] FR-015: System MUST provide detailed per-segment logging including duration, silence info, and transcription text.
+- [x] FR-016: System MUST insert a comma in the transcript if the gap between words exceeds 250ms.
+- [x] FR-017: System MUST append a trailing period to transcripts if no other punctuation is present.
 
 ### Key Entities *(include if feature involves data)*
 

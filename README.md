@@ -44,6 +44,8 @@ python data_prepare/split_sentences.py `
   - **Silence Cropping**: `--max_silence_ms` clips leading/trailing silence (WAV and CSV synced).
   - **Duration Safety**: If cropping violates `--min_duration`, silence is reduced **partially** (proportionally) to maintain the minimum length.
   - **Auto-Comma**: If a split happens mid-sentence, a comma is added to the TXT output.
+  - **Internal Comma**: If a gap between words exceeds 250ms, a comma is inserted.
+  - **Trailing Dot**: Transcripts automatically end with a period if no other punctuation is present.
   - **Punctuation**: Preserves punctuation from source TXT files via `TOKEN` mapping.
   - **Enhanced Logging**: Prints source length, segment count, per-segment duration, silence lengths, and transcription text.
 
