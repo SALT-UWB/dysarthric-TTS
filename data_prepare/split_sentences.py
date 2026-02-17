@@ -28,7 +28,9 @@ def split_recording(
     alignment_dir: Path, 
     output_dir: Path, 
     pause_threshold: float = 1.0, 
-    min_duration: float = 2.0,
+    max_sentence_length: float = 15.0,
+    min_speech_duration: float = 1.0,
+    min_word_count: int = 2,
     max_silence_ms: float = -1.0,
     csv_delimiter: str = ';', 
     expected_sr: int = 24000
@@ -78,55 +80,117 @@ def split_recording(
         logger.error(err_msg)
         sys.exit(1)
 
-    # 1. Collect potential cut points (sample, is_sentence_boundary)
-    candidate_cuts = []
+    # 1. Collect potential cut points
+    potential_cuts = []
     for i in range(len(df)):
         row = df.iloc[i]
         if row['MAU'] == '<p:>':
             # Sentence Boundary Check
-            is_sentence_boundary = False
+            is_nsb = False
             for j in range(i + 1, len(df)):
                 if df.iloc[j]['MAU'] != '<p:>':
                     ort = str(df.iloc[j]['ORT'])
                     if ort and ort[0].isupper():
-                        is_sentence_boundary = True
+                        is_nsb = True
+                    break
+            
+            # Comma Check (word before this pause)
+            is_comma = False
+            for j in range(i - 1, -1, -1):
+                if df.iloc[j]['MAU'] != '<p:>':
+                    tid = int(df.iloc[j]['TOKEN'])
+                    if 0 <= tid < len(source_words):
+                        if ',' in source_words[tid]:
+                            is_comma = True
                     break
             
             pause_dur = samples_to_seconds(int(row['DURATION']), sr)
-            if is_sentence_boundary or pause_dur > pause_threshold:
-                candidate_cuts.append((calculate_midpoint(int(row['BEGIN']), int(row['DURATION'])), is_sentence_boundary))
+            mid = calculate_midpoint(int(row['BEGIN']), int(row['DURATION']))
+            
+            if is_nsb:
+                potential_cuts.append({'sample': mid, 'type': 'NSB'})
+            elif is_comma:
+                potential_cuts.append({'sample': mid, 'type': 'COMMA'})
+            elif pause_dur > pause_threshold:
+                potential_cuts.append({'sample': mid, 'type': 'PAUSE'})
 
-    # 2. Refine segments (ensure min_duration and presence of speech)
-    # Each entry: (start, end, ends_at_sentence_boundary)
-    segments: list[tuple[int, int, bool]] = []
-    current_start = 0
+    # 2. Refine segments (ensure max_len, min_speech, min_words)
+    def get_seg_stats(s, e):
+        sub = df[(df['BEGIN'] + df['DURATION'] > s) & (df['BEGIN'] < e)]
+        words = sub[sub['TOKEN'] >= 0]['TOKEN'].unique()
+        speech_samples = 0
+        for _, r in sub[sub['MAU'] != '<p:>'].iterrows():
+            rs = max(r['BEGIN'], s)
+            re = min(r['BEGIN'] + r['DURATION'], e)
+            speech_samples += max(0, re - rs)
+        return len(words), float(speech_samples) / sr
+
+    # Initial split by NSB
+    hard_cuts = [0] + sorted([c['sample'] for c in potential_cuts if c['type'] == 'NSB']) + [total_samples]
+    hard_cuts = sorted(list(set(hard_cuts)))
     
-    for cut, is_boundary in candidate_cuts:
-        if cut <= current_start:
-            continue
+    raw_units = []
+    for i in range(len(hard_cuts) - 1):
+        raw_units.append((hard_cuts[i], hard_cuts[i+1], True)) # (start, end, is_nsb)
+
+    # Sub-split long units
+    refined_units = []
+    for start, end, is_nsb in raw_units:
+        stack = [(start, end, is_nsb)]
+        while stack:
+            s, e, b = stack.pop()
+            dur = samples_to_seconds(e - s, sr)
             
-        # Check current candidate segment
-        seg_dur = samples_to_seconds(cut - current_start, sr)
-        seg_df_initial = df[(df['BEGIN'] + df['DURATION'] > current_start) & (df['BEGIN'] < cut)]
-        has_speech = not seg_df_initial[seg_df_initial['ORT'].str.strip() != '<p:>'].empty if 'ORT' in df.columns else False
-        
-        # Only commit cut if segment is valid OR if it's the very last part (handled after loop)
-        if seg_dur >= min_duration and has_speech:
-            segments.append((current_start, cut, is_boundary))
-            current_start = cut
+            if dur <= max_sentence_length:
+                refined_units.append((s, e, b))
+                continue
+                
+            # Try splitting
+            inner = [c for c in potential_cuts if s < c['sample'] < e and c['type'] != 'NSB']
+            split_found = False
+            for ptype in ['COMMA', 'PAUSE']:
+                candidates = [c for c in inner if c['type'] == ptype]
+                if not candidates: continue
+                
+                mid_s = s + (e - s) // 2
+                candidates.sort(key=lambda x: abs(x['sample'] - mid_s))
+                
+                for c in candidates:
+                    w1, sp1 = get_seg_stats(s, c['sample'])
+                    w2, sp2 = get_seg_stats(c['sample'], e)
+                    if w1 >= min_word_count and sp1 >= min_speech_duration and \
+                       w2 >= min_word_count and sp2 >= min_speech_duration:
+                        stack.append((c['sample'], e, b))
+                        stack.append((s, c['sample'], False))
+                        split_found = True
+                        break
+                if split_found: break
             
-    # Add the remaining tail to the last segment or create new if valid
-    if current_start < total_samples:
-        final_dur = samples_to_seconds(total_samples - current_start, sr)
-        final_df = df[(df['BEGIN'] + df['DURATION'] > current_start)]
-        final_has_speech = not final_df[final_df['ORT'].str.strip() != '<p:>'].empty
-        
-        if segments and (final_dur < min_duration or not final_has_speech):
-            # Merge with previous; the boundary status of the merged segment is True (end of file)
-            prev_start, _, _ = segments.pop()
-            segments.append((prev_start, total_samples, True))
+            if not split_found:
+                refined_units.append((s, e, b))
+
+    # Final Merge Pass for invalid segments
+    refined_units.sort(key=lambda x: x[0])
+    segments: list[tuple[int, int, bool]] = []
+    
+    for s, e, b in refined_units:
+        w, sp = get_seg_stats(s, e)
+        if w >= min_word_count and sp >= min_speech_duration:
+            segments.append((s, e, b))
         else:
-            segments.append((current_start, total_samples, True))
+            if segments:
+                ls, le, lb = segments.pop()
+                segments.append((ls, e, b))
+            else:
+                segments.append((s, e, b))
+
+    # Clean up any remaining invalid at the start by merging with next
+    if len(segments) > 1:
+        s, e, b = segments[0]
+        w, sp = get_seg_stats(s, e)
+        if w < min_word_count or sp < min_speech_duration:
+            ns, ne, nb = segments.pop(1)
+            segments[0] = (s, ne, nb)
 
     # 3. Write segments
     audio, _ = sf.read(str(wav_path))
@@ -215,24 +279,43 @@ def split_recording(
         seg_df.to_csv(output_dir / f"{seg_stem}.csv", sep=csv_delimiter, index=False)
         
         # TXT
-        # Get unique TOKEN IDs in this segment (ignoring -1)
-        seg_token_ids = sorted(seg_df[seg_df['TOKEN'] >= 0]['TOKEN'].unique().tolist())
+        # Identify word blocks (contiguous TOKEN >= 0) to check for gaps
+        word_blocks = seg_df[seg_df['TOKEN'] >= 0].groupby('TOKEN', sort=False).agg({
+            'BEGIN': 'min',
+            'DURATION': 'sum'
+        }).reset_index()
         
-        # Map tokens to words from the original source text
-        words = []
-        for tid in seg_token_ids:
+        words_with_commas = []
+        for i in range(len(word_blocks)):
+            tid = int(word_blocks.iloc[i]['TOKEN'])
             if 0 <= tid < len(source_words):
-                words.append(source_words[tid])
+                word_text = source_words[tid]
             else:
                 # Fallback to ORT if token is out of bounds
                 fallback_ort = seg_df[seg_df['TOKEN'] == tid]['ORT'].iloc[0]
-                words.append(str(fallback_ort))
+                word_text = str(fallback_ort)
             
-        seg_text = " ".join(words)
+            words_with_commas.append(word_text)
+            
+            # Check for gap to next word (> 250ms)
+            if i < len(word_blocks) - 1:
+                curr_end = word_blocks.iloc[i]['BEGIN'] + word_blocks.iloc[i]['DURATION']
+                next_start = word_blocks.iloc[i+1]['BEGIN']
+                gap_sec = samples_to_seconds(next_start - curr_end, sr)
+                if gap_sec >= 0.250:
+                    # Add comma if word doesn't already have punctuation
+                    if words_with_commas[-1] and words_with_commas[-1][-1] not in ".,!?;:":
+                        words_with_commas[-1] += ","
+            
+        seg_text = " ".join(words_with_commas)
         
         # Add comma if split in middle of sentence
         if not is_boundary and seg_text and seg_text[-1] not in ".,!?;:":
             seg_text += ","
+            
+        # Add dot at the end if no punctuation present
+        if seg_text and seg_text[-1] not in ".,!?;:":
+            seg_text += "."
             
         with open(output_dir / f"{seg_stem}.txt", 'w', encoding='utf-8') as f:
             f.write(seg_text)
@@ -240,7 +323,7 @@ def split_recording(
         processed_segments.append({
             'id': seg_stem,
             'duration_sec': samples_to_seconds(actual_end - actual_start, sr),
-            'word_count': len(words)
+            'word_count': len(words_with_commas)
         })
 
         # Log segment details
@@ -260,8 +343,12 @@ def main() -> None:
                         help="Where to write segmented artifacts")
     parser.add_argument("--pause_threshold", type=float, default=1.0, 
                         help="Pause threshold in seconds")
-    parser.add_argument("--min_duration", type=float, default=2.0, 
-                        help="Minimum segment duration in seconds")
+    parser.add_argument("--max_sentence_length", type=float, default=15.0, 
+                        help="Maximum segment duration in seconds")
+    parser.add_argument("--min_speech_duration", type=float, default=1.0, 
+                        help="Minimum speech duration (excluding pauses) in seconds")
+    parser.add_argument("--min_word_count", type=int, default=2, 
+                        help="Minimum number of words per segment")
     parser.add_argument("--max_silence_ms", type=float, default=-1.0, 
                         help="Maximum leading/trailing silence in milliseconds. Default -1 (keep all).")
     parser.add_argument("--csv_delimiter", type=str, default=";", 
@@ -286,7 +373,9 @@ def main() -> None:
         count, segments = split_recording(
             stem, input_dir, alignment_dir, output_dir,
             pause_threshold=args.pause_threshold,
-            min_duration=args.min_duration,
+            max_sentence_length=args.max_sentence_length,
+            min_speech_duration=args.min_speech_duration,
+            min_word_count=args.min_word_count,
             max_silence_ms=args.max_silence_ms,
             csv_delimiter=args.csv_delimiter,
             expected_sr=args.expected_sr
