@@ -10,6 +10,9 @@ dependencies = [
     "matplotlib",
     "seaborn",
     "ipywidgets",
+    "torch",
+    "scikit-learn",
+    "umap-learn",
 ]
 
 [tool.ruff]
