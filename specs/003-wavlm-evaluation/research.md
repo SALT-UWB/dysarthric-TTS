@@ -1,22 +1,22 @@
 # Research: wavLM-evaluation
 
 ## Metadata Integration
-- **H/Y Scale**: Hoehn & Yahr scores correlate misclassifications with disease severity.
-- **DDK Bias Mitigation**: Diadochokinetic (DDK) task is excluded from PD/HC classification to prevent trivial features (as HC lacks DDK) from inflating accuracy.
+- **H/Y Scale**: Hoehn & Yahr scores are included to correlate misclassifications with disease severity in PD/HC detection reports.
+- **DDK Bias Mitigation**: The Diadochokinetic (DDK) task is strictly excluded from PD/HC classification models. Since the Healthy Control (HC) group lacks these recordings, including them would allow models to "cheat" by detecting the presence of the task rather than acoustic dysarthric features.
 
 ## Evaluation Methodology
-- **Speaker Assignment**: A nearest-centroid approach evaluates acoustic identity uniqueness.
-- **Validation**: StratifiedGroupKFold (n=10) ensures balanced status distribution while strictly avoiding speaker leakage.
+- **Speaker Assignment**: A nearest-centroid approach evaluates acoustic identity uniqueness across task groups.
+- **Validation Strategy**: StratifiedGroupKFold (n=10) is used to maintain health status balance while ensuring no individual speaker's files overlap between training and testing sets.
 - **Aggregation Logic**:
-    - **Majority Vote**: Final label based on the most frequent prediction in a group.
-    - **Average Probability**: Final label based on the mean softmax output; score in parentheses indicates model confidence.
+    - **Majority Vote**: Final label based on the most frequent file-level prediction.
+    - **Average Probability**: Final label based on the mean softmax output across a speaker's task group. Score in parentheses represents model confidence [0.0 - 1.0].
 
-## Visualization Strategy
-- **Spider Plots**: Shows hierarchy (Sample -> Group -> Speaker).
-- **Histograms**: Visualizes Age Distribution and MAE residuals.
-- **Styled Dataframes**: Uses conditional formatting to highlight success (Green), global failure (Red), and task-specific inconsistencies (Orange).
+## Visualization & Display
+- **Spider Plots**: Visualizes variance within a speaker's task groups relative to their global mean.
+- **Histograms**: Verifies age demographics and ensures error distribution symmetry in regression tasks.
+- **Styled Dataframes**: Conditional formatting highlights overall classification success (Green), global failures (Red), and task-specific inconsistencies (Orange).
 
 ## Machine Learning Models
-- **Logistic Regression (LR) / Ridge**: Baseline performance.
-- **MLP (256, 128, 64)**: Non-linear feature extraction.
-- **HistGradientBoosting (HGBT)**: High-performance gradient boosting for tabular embedding data.
+- **Logistic Regression (LR) / Ridge**: Baseline performance benchmarks.
+- **MLP (256, 128, 64)**: Captures complex non-linear acoustic signatures.
+- **HistGradientBoosting (HGBT)**: High-performance gradient boosting optimized for large embedding vectors.

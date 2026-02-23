@@ -17,9 +17,10 @@ Implementation of a comprehensive evaluation suite for WavLM embeddings extracte
 
 ## Phase 4: Machine Learning Suite (Completed)
 - [x] `classification_analysis.ipynb`: 
-    - Sex Classification: LR, MLP, HGBT.
+    - Sex Classification: LR, MLP, HGBT + Detailed breakdown.
     - Age Prediction: Ridge, HGBT + Distribution & Error Histograms.
-    - PD/HC Detection: LR, MLP, HGBT (Excluding DDK).
+    - PD/HC Detection: LR, MLP, HGBT (Excluding DDK recordings).
     - Aggregated Analysis: Majority Vote and Average Probability (LR, HGBT).
     - Styled Summaries: Green (All correct), Red (Overall wrong), Orange (Group mismatch).
+    - Progress Tracking: Integrated `tqdm` progress bars for all training loops.
 - [x] Robust validation using StratifiedGroupKFold (n=10).

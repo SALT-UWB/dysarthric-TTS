@@ -8,28 +8,28 @@ Ensure all dependencies are installed in your `.venv`:
 pip install torch pandas scikit-learn matplotlib seaborn tqdm ipywidgets
 ```
 
-## Running the Evaluation
+## Available Notebooks
 
-### 1. Hierarchical Distance Tables
-Browse distances between individual recordings and centroids:
-- Open `embeddings_eval/report_tables.ipynb`
-- Features interactive selection of speakers and Mean/Variance summaries.
+### 1. Statistical Tables (`embeddings_eval/report_tables.ipynb`)
+Browse numerical distances between individual recordings and centroids:
+- Features interactive selection of speakers.
+- Summary Mean/Variance tables for both PD and HC groups.
 
-### 2. Interactive Visualization (Spider Plots)
-Visualize speaker clusters and task-group hierarchy:
-- Open `embeddings_eval/interactive_eval.ipynb`
-- Gender-aware coloring and hierarchy lines.
+### 2. Interactive Visualization (`embeddings_eval/interactive_eval.ipynb`)
+Visual exploration of embedding clusters:
+- **Spider Plots**: Connect individual samples to their group centroids and group centroids to the speaker global mean.
+- **Color Coding**: Status and Gender aware (Red/Purple for PD, Green/Light Green for HC).
 
-### 3. Machine Learning Analysis
-Evaluate predictive power for Sex, Age, and PD status:
-- Open `embeddings_eval/classification_analysis.ipynb`
-- Uses **StratifiedGroupKFold (n=10)**.
-- **Note**: DDK data is excluded from PD/HC detection to ensure a fair comparison with the HC group.
-- **Aggregation**: Compare Majority Vote vs. Average Probability at the speaker level.
+### 3. Classification Analysis (`embeddings_eval/classification_analysis.ipynb`)
+Comprehensive ML evaluation suite:
+- **Sex Classification**: Evaluating LR, MLP, and HGBT.
+- **Age Prediction**: Visualizing distribution and prediction error (Ridge, HGBT).
+- **PD/HC Detection**: Advanced aggregation (Majority Vote / Avg Proba) with H/Y severity context.
+- **Progress Tracking**: Real-time feedback via `tqdm` progress bars.
 
 ## Core Script
-To generate raw CSV reports:
+To generate raw CSV reports for all speakers:
 ```bash
 python -m embeddings_eval.run_eval
 ```
-Reports are saved to the `reports/` directory.
+Output files will be generated in the `reports/` directory.
