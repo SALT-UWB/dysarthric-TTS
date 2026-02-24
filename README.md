@@ -111,7 +111,7 @@ Generate transcripts for DDK recordings with syllable-level gap analysis:
 python data_prepare/get_ddk_transcription.py
 ```
 
-- **Logic**: 
+- **Logic**:
   - Maps speaker IDs (e.g., `001PD`) to transcript IDs via mapping CSV.
   - Inserts commas if the gap between syllable segments > threshold.
   - Normalizes to lowercase and adds a trailing period.
@@ -120,8 +120,28 @@ python data_prepare/get_ddk_transcription.py
   - `--no_lowercase`: Disable lowercase conversion.
 - **Inputs**: `datalocal/v260210_24kHz/ddk/` and `_metadata/DDK[1-3].txt`.
 
-## Dataset Protection
+## Phoneme Duration Evaluation
 
+Analyze acoustic differences between PD and HC speakers based on phoneme alignment durations:
+
+- **Core Analysis**:
+  - Calculates mean and variance per phoneme, stratified by Status (PD/HC), Sex (M/F), and Task Group.
+  - Identifies discriminative phonemes using **Cohen's d** effect size.
+  - Filters technical alignment errors using **Z-score outlier detection (Z=3)**.
+- **Machine Learning**:
+  - Classifies speakers as PD or HC using **speaker-level** feature vectors (aggregated statistics).
+  - Evaluates performance both with and without **Sex** as an additional feature.
+  - Generates detailed **Per-Speaker Summaries** with colored result tables and classification probabilities.
+- **Execution**:
+  ```powershell
+  .venv\Scripts\python.exe -m phoneme_evaluation.run_stats
+  .venv\Scripts\python.exe -m phoneme_evaluation.run_viz
+  ```
+- **Notebooks**:
+  - `phoneme_evaluation/statistics_visualization.ipynb`: Interactive exploration and stratified boxplots.
+  - `phoneme_evaluation/ml_classification.ipynb`: Speaker-level classification experiments and per-individual results.
+
+## Dataset Protection
 **CRITICAL**: NEVER commit real PC-GITA audio, transcripts, or metadata to this repository. All raw data should be stored in `datalocal/` which is ignored by git.
 
 The repository includes a minimal synthetic dummy dataset in `tests/data_prepare/dummy_data/` for CI and testing.

@@ -23,6 +23,7 @@ Python 3.11+: Follow standard conventions
 
 ## Recent Changes
 
+- 004-phoneme-evaluation: Added phoneme duration analysis, Cohen's d effect size, Z-score outlier filtering, and speaker-level PD vs HC classification.
 - 001-segment-pcgita-sentences: Added Python 3.11+ + librosa, pandas, soundfile, ruff, mypy, pytest, nbformat, nbconvert
 
 <!-- MANUAL ADDITIONS START -->
