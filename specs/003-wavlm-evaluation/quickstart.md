@@ -10,22 +10,18 @@ pip install torch pandas scikit-learn matplotlib seaborn tqdm ipywidgets
 
 ## Available Notebooks
 
-### 1. Statistical Tables (`embeddings_eval/report_tables.ipynb`)
-Browse numerical distances between individual recordings and centroids:
-- Features interactive selection of speakers.
-- Summary Mean/Variance tables for both PD and HC groups.
+### 1. Hierarchical Centroid Analysis (`embeddings_eval/centroid_speaker_assignment.ipynb`)
+Comprehensive suite for non-ML evaluation:
+- **Speaker Assignment**: Identifies success in mapping files to correct centroids (with Top 5 intruders).
+- **Distance Tables**: Interactive browsing of Mean/Variance distance metrics for all task groups.
+- **Visual Exploration**: Global centroid maps and interactive **Spider Plots** showing hierarchical connections (Sample -> Group -> Speaker).
 
-### 2. Interactive Visualization (`embeddings_eval/interactive_eval.ipynb`)
-Visual exploration of embedding clusters:
-- **Spider Plots**: Connect individual samples to their group centroids and group centroids to the speaker global mean.
-- **Color Coding**: Status and Gender aware (Red/Purple for PD, Green/Light Green for HC).
-
-### 3. Classification Analysis (`embeddings_eval/classification_analysis.ipynb`)
-Comprehensive ML evaluation suite:
-- **Sex Classification**: Evaluating LR, MLP, and HGBT.
-- **Age Prediction**: Visualizing distribution and prediction error (Ridge, HGBT).
-- **PD/HC Detection**: Advanced aggregation (Majority Vote / Avg Proba) with H/Y severity context.
-- **Progress Tracking**: Real-time feedback via `tqdm` progress bars.
+### 2. ML Classification Analysis (`embeddings_eval/ml_classification_analysis.ipynb`)
+Advanced trait prediction using machine learning:
+- **Sex Classification**: Logistic Regression, MLP, and HGBT.
+- **Age Prediction**: Ridge and HGBT models with distribution histograms.
+- **PD/HC Detection**: Detailed aggregation (Majority Vote / Avg Proba) and misclassification reports with H/Y severity context.
+- **Validation**: Uses **StratifiedGroupKFold (n=10)**.
 
 ## Core Script
 To generate raw CSV reports for all speakers:
