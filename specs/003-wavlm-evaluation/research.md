@@ -7,16 +7,16 @@
 ## Evaluation Methodology
 - **Speaker Assignment**: A nearest-centroid approach evaluates acoustic identity uniqueness across task groups.
 - **Validation Strategy**: StratifiedGroupKFold (n=10) is used to maintain health status balance while ensuring no individual speaker's files overlap between training and testing sets.
-- **Aggregation Logic**:
-    - **Majority Vote**: Final label based on the most frequent file-level prediction.
-    - **Average Probability**: Final label based on the mean softmax output across a speaker's task group. Score in parentheses represents model confidence [0.0 - 1.0].
+- **Aggregation Metrics**:
+    - **Majority Vote**: Final label based on the most frequent file-level prediction. *Confidence* is the average % of files matching the winner.
+    - **Average Probability**: Final label based on the mean softmax output. *Probability* indicates model confidence [0.0 - 1.0].
 
 ## Visualization & Display
-- **Spider Plots**: Visualizes variance within a speaker's task groups relative to their global mean.
+- **Spider Plots**: Visualizes hierarchical variance (Sample -> Group -> Speaker).
 - **Histograms**: Verifies age demographics and ensures error distribution symmetry in regression tasks.
 - **Styled Dataframes**: Conditional formatting highlights overall classification success (Green), global failures (Red), and task-specific inconsistencies (Orange).
 
 ## Machine Learning Models
-- **Logistic Regression (LR) / Ridge**: Baseline performance benchmarks.
-- **MLP (256, 128, 64)**: Captures complex non-linear acoustic signatures.
-- **HistGradientBoosting (HGBT)**: High-performance gradient boosting optimized for large embedding vectors.
+- **Logistic Regression (LR) / Ridge**: Baseline performance.
+- **MLP (256, 128, 64)**: Capture complex non-linear signatures.
+- **HistGradientBoosting (HGBT)**: High-performance gradient boosting optimized for embeddings.

@@ -30,7 +30,8 @@ Predict Sex, Age, and Health Status using advanced ML models in `ml_classificati
 **Acceptance Scenarios**:
 1. **Given** embeddings and metadata, **When** training LR, Ridge, MLP, and HGBT models, **Then** the system MUST use StratifiedGroupKFold (n=10) to prevent speaker leakage and ensure balanced groups.
 2. **Given** age prediction, **Then** the system MUST visualize age distribution and absolute error distribution via histograms (HGBT model).
-3. **Given** PD/HC detection, **Then** the system MUST exclude DDK samples, evaluate multiple models (LR, MLP, HGBT), and provide styled per-speaker summaries.
+3. **Given** PD/HC detection, **Then** the system MUST exclude DDK samples to prevent bias and provide a comprehensive summary table for all models and subsets (including `monologue+sentence`).
+4. **Given** final results, **Then** the system MUST provide a styled per-speaker summary for the best model (Green: Perfect, Red: Overall Wrong, Orange: Group Mismatch) including H/Y severity scores.
 
 ## Requirements
 
@@ -39,12 +40,12 @@ Predict Sex, Age, and Health Status using advanced ML models in `ml_classificati
 - [x] FR-002: Identify task groups including the 4+ word pattern for spontaneous word sequences.
 - [x] FR-003: Calculate hierarchical centroids (Global mean excludes DDK).
 - [x] FR-004: Implement Centroid-Based Speaker Assignment with Top 5 intruder detection.
-- [x] FR-005: Implement ML experiments for Sex (LR, MLP, HGBT), Age (Ridge, HGBT), and Status (LR, MLP, HGBT).
+- [x] FR-005: Implement ML experiments for Sex, Age, and Status across multiple models.
 - [x] FR-006: Use StratifiedGroupKFold (n=10) for robust cross-validation.
-- [x] FR-007: Implement aggregated speaker-level classification using Majority Vote and Average Probability methods.
+- [x] FR-007: Implement aggregated speaker-level classification metrics: Majority Vote (with Confidence) and Average Probability (with Mean Probability).
 - [x] FR-008: Visualize results with hierarchical spider plots, histograms, and styled pandas tables.
 
 ## Success Criteria
 - **SC-001**: 100% metadata integration for all processed speakers.
 - **SC-002**: Successful execution of all ML pipelines with progress tracking (tqdm).
-- **SC-003**: Fully English interactive notebooks for all analysis phases.
+- **SC-003**: Final summary table comparing LR, MLP, and HGBT performance.
