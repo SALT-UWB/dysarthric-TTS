@@ -120,6 +120,23 @@ python data_prepare/get_ddk_transcription.py
   - `--no_lowercase`: Disable lowercase conversion.
 - **Inputs**: `datalocal/v260210_24kHz/ddk/` and `_metadata/DDK[1-3].txt`.
 
+## Speaker Reference Generation
+
+Generate high-quality reference audio for each speaker using a tiered source strategy:
+
+```powershell
+python data_prepare/speaker_reference.py
+```
+
+- **Logic**:
+  - **Tier 1 (Primary)**: Uses Sentences 5 and 6 from `sentences_cleaned`. Concatenates all available segments for these sentences.
+  - **Tier 2 (Fallback)**: If sentences are missing, uses the first segments from `readtext_split` to reach a target of 6-8 seconds of speech.
+  - **Tier 3 (Final Fallback)**: Uses `monologue_split` segments to reach the 6-8 second target.
+- **Naming Convention**:
+  - Primary: `{speaker}_sentences_5_6`
+  - Fallbacks: `{speaker}_{segment_ids}` (e.g., `005PD_S1_readtext_1_001_002_003`)
+- **Output**: Saved in `datalocal/PC-GITA_v260210_24kHz/speakers_ref_sentences/`.
+
 ## Phoneme Duration Evaluation
 
 Analyze acoustic differences between PD and HC speakers based on phoneme alignment durations:
