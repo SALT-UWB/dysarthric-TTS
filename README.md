@@ -137,6 +137,21 @@ python data_prepare/speaker_reference.py
   - Fallbacks: `{speaker}_{segment_ids}` (e.g., `005PD_S1_readtext_1_001_002_003`)
 - **Output**: Saved in `datalocal/PC-GITA_v260210_24kHz/speakers_ref_sentences/`.
 
+### Single Sentence Speaker Reference (`speaker_reference_6.py`)
+
+A specialized version focused on a single representative sentence (primarily Sentence 6):
+
+```powershell
+python data_prepare/speaker_reference_6.py
+```
+
+- **Logic**:
+  - **Tier 1**: Uses **Sentence 6** from `sentences_cleaned`.
+  - **Tier 2/3**: Fallback to a single **3.0-4.0s** segment from `readtext_split` or `monologue_split` ending with a **dot**.
+  - **Tier 4/5**: Flexible fallback to **2.0-6.0s** segments (no dot required).
+  - **Tier 6**: Absolute fallback to **any** available segment to ensure 100% speaker coverage.
+- **Output**: Saved in `datalocal/PC-GITA_v260210_24kHz/speakers_ref_sentence6/`.
+
 ## Phoneme Duration Evaluation
 
 Analyze acoustic differences between PD and HC speakers based on phoneme alignment durations:
@@ -157,6 +172,29 @@ Analyze acoustic differences between PD and HC speakers based on phoneme alignme
 - **Notebooks**:
   - `phoneme_evaluation/statistics_visualization.ipynb`: Interactive exploration and stratified boxplots.
   - `phoneme_evaluation/ml_classification.ipynb`: Speaker-level classification experiments and per-individual results.
+
+## Dataset Comparison
+
+Evaluate synthetic parallel datasets (e.g., PC-GITA vs. TTS generated versions) to ensure fidelity and integrity:
+
+- **Orchestration**:
+  ```powershell
+  python -m dataset_comparison.run_comparison `
+      --ref datalocal/PC-GITA_v260210_24kHz `
+      --test datalocal/genPC-GITA_ZipVoice-CML-CV_ref-CML-wavLM
+  ```
+- **Fidelity Metrics**:
+  - **Data Integrity**: Verifies existence of parallel `.wav`, `.csv` (alignment), and `.txt` files.
+  - **Transcription Content**: Checks if `.txt` files are identical and logs mismatches.
+  - **Duration Delta**: Alerts on audio duration differences > 50% relative to the reference.
+  - **WavLM Embeddings**: Calculates **Cosine Distances** between high-dimensional embeddings.
+  - **Phoneme Fidelity**: Computes duration deltas per phoneme and identifies missing tokens in the test set.
+- **Visualization**:
+  - **Notebook**: `dataset_comparison/dataset_comparison_viz.ipynb`
+  - **Interactive Analysis**:
+    - Summary tables of embedding distances and variances across all task groups (DDK, monologue, readtext, sentences, words).
+    - Group-level comparison (PD vs. HC) with H/Y severity scores integrated.
+    - **Interactive Drill-down**: Select a problematic file from a dropdown to see side-by-side **transcripts**, **spectrograms**, and use **integrated audio players** for direct comparison.
 
 ## Dataset Protection
 **CRITICAL**: NEVER commit real PC-GITA audio, transcripts, or metadata to this repository. All raw data should be stored in `datalocal/` which is ignored by git.
