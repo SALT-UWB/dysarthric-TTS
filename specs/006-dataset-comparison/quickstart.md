@@ -12,14 +12,14 @@ python -m dataset_comparison.run_comparison --ref datalocal/PC-GITA_v260210_24kH
 ```
 
 ## Visualization
-Launch the Jupyter notebook:
-```bash
-jupyter notebook dataset_comparison/dataset_comparison_viz.ipynb
-```
-Select the generated report (e.g., `comparison_PC-GITA_v260210_24kHz_genPC-GITA_ZipVoice-CML-CV_ref-CML-wavLM`) from the dropdown menu to see:
-- Integrity and transcription mismatch summaries.
-- Interactive side-by-side audio and spectrogram comparison.
-- Group-wise embedding distance and phoneme fidelity plots.
+Launch the Jupyter notebooks:
+- **Audio Integrity**: `jupyter notebook dataset_comparison/dataset_comparison_viz.ipynb`
+- **Embedding Analysis**: `jupyter notebook dataset_comparison/embedding_comparison_viz.ipynb`
+
+In `embedding_comparison_viz.ipynb`, you can:
+- View a **Global Overview** comparing all models in the `reports/` folder.
+- Analyze **Fidelity vs. Natural Diversity** (Ref-Test vs. Ref-Ref) for sentences 1-10.
+- Compare Cosine and Euclidean distances side-by-side.
 
 ## Outputs
 Reports are saved in `reports/comparison_{ref}_{test}/`:

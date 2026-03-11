@@ -104,8 +104,9 @@ def main():
             emb_summary.to_csv(reports_dir / "speaker_embedding_summary.csv", index=False)
             
             # Log aggregate stats
-            group_means = emb_summary.groupby('status')['avg_distance'].mean()
-            task_means = emb_summary.groupby(['task', 'status'])['avg_distance'].mean()
+            group_means = emb_summary.groupby('status')['avg_cos_dist'].mean()
+            task_means = emb_summary.groupby(['task', 'status'])['avg_cos_dist'].mean()
+            task_means_euc = emb_summary.groupby(['task', 'status'])['avg_euc_dist'].mean()
             speaker_counts = emb_summary.groupby(['task', 'status'])['speaker_id'].nunique()
             file_counts = emb_df.groupby(['task', 'status'])['filename'].count()
             
@@ -115,12 +116,12 @@ def main():
                     logger.info(f"  Task: {task}")
                     for status in ['HC', 'PD']:
                         if (task, status) in task_means.index:
-                            logger.info(f"    {status}: Dist={task_means[task, status]:.4f}, Speakers={speaker_counts[task, status]}, Files={file_counts[task, status]}")
+                            logger.info(f"    {status}: Cosine={task_means[task, status]:.4f}, Euclidean={task_means_euc[task, status]:.4f}, Speakers={speaker_counts[task, status]}, Files={file_counts[task, status]}")
             
-            logger.info("Global Health Status Summary:")
+            logger.info("Global Health Status Summary (Cosine):")
             for status in ['HC', 'PD']:
                 if status in group_means.index:
-                    logger.info(f"  {status}: Avg Dist={group_means[status]:.4f}")
+                    logger.info(f"  {status}: Avg Cosine Dist={group_means[status]:.4f}")
     except Exception as e:
         logger.error(f"Error in embedding comparison: {e}")
 

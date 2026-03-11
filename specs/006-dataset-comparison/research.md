@@ -9,10 +9,13 @@
 
 ## Research Findings
 
-### Decision 1: Embedding Distance Metric
-- **Choice**: Cosine Similarity / Cosine Distance.
-- **Rationale**: Standard for high-dimensional embeddings (like WavLM) as it measures directional similarity regardless of magnitude.
-- **Alternatives**: Euclidean distance (sensitive to magnitude).
+### Decision 1: Dual Embedding Distance Metrics
+- **Choice**: **Cosine Distance** and **Euclidean Distance**.
+- **Rationale**: Cosine measures directional (identity/phonetic) similarity regardless of volume. Euclidean captures absolute acoustic fidelity. Providing both ensures a comprehensive evaluation.
+
+### Decision 5: Baseline Normalization
+- **Choice**: **Inter-speaker diversity (Ref-Ref)**.
+- **Rationale**: Establishing how much natural speakers differ for the same sentence provides a context for "closeness." Synthesis is successful if Ref-Test distance is significantly smaller than the natural Ref-Ref variation.
 
 ### Decision 2: Phoneme Comparison Logic
 - **Choice**: Duration difference ($\Delta t = |t_{ref} - t_{test}|$) and Presence check.

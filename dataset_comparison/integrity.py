@@ -32,6 +32,10 @@ class DataIntegrityChecker:
                 ref_csv = ref_file.with_suffix(".csv")
                 test_csv = get_parallel_file(ref_csv, self.test_root)
                 
+                # Check for WavLM embeddings
+                ref_emb = self.ref_root / "speaker_embeddings" / "wavLM" / (ref_file.stem + ".pt")
+                test_emb = self.test_root / "speaker_embeddings" / "wavLM" / (ref_file.stem + ".pt")
+                
                 if not test_file:
                     logger.warning(f"Missing test audio for: {ref_file.name}")
                 if ref_csv.exists() and not test_csv:
@@ -48,6 +52,8 @@ class DataIntegrityChecker:
                     "filename": ref_file.name,
                     "exists_in_test": test_file is not None,
                     "csv_exists_in_test": test_csv is not None if ref_csv.exists() else None,
+                    "emb_exists_in_ref": ref_emb.exists(),
+                    "emb_exists_in_test": test_emb.exists(),
                     "transcription_match": txt_match
                 })
 

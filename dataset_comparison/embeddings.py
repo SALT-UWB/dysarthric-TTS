@@ -16,16 +16,24 @@ class EmbeddingComparator:
         self.test_emb_root = test_root / "speaker_embeddings" / "wavLM"
         self.results = []
 
-    def calculate_distance(self, ref_emb: torch.Tensor, test_emb: torch.Tensor) -> float:
+    def calculate_distances(self, ref_emb: torch.Tensor, test_emb: torch.Tensor) -> Dict[str, float]:
         """
-        Calculates Cosine Distance between two embeddings.
-        1 - Cosine Similarity.
+        Calculates both Cosine and Euclidean distances between two embeddings.
         """
         ref_emb = ref_emb.flatten()
         test_emb = test_emb.flatten()
         
+        # Cosine Distance (1 - similarity)
         sim = F.cosine_similarity(ref_emb.unsqueeze(0), test_emb.unsqueeze(0))
-        return 1.0 - sim.item()
+        cos_dist = 1.0 - sim.item()
+        
+        # Euclidean Distance
+        euc_dist = torch.norm(ref_emb - test_emb, p=2).item()
+        
+        return {
+            "cosine_distance": cos_dist,
+            "euclidean_distance": euc_dist
+        }
 
     def compare_embeddings(self):
         """
@@ -46,7 +54,7 @@ class EmbeddingComparator:
                 try:
                     ref_val = load_embedding(ref_file)
                     test_val = load_embedding(test_file)
-                    dist = self.calculate_distance(ref_val, test_val)
+                    dists = self.calculate_distances(ref_val, test_val)
                     
                     task = identify_task(ref_file.name)
 
@@ -54,7 +62,8 @@ class EmbeddingComparator:
                         "speaker_id": extract_speaker_id(ref_file),
                         "filename": ref_file.name,
                         "task": task,
-                        "cosine_distance": dist
+                        "cosine_distance": dists["cosine_distance"],
+                        "euclidean_distance": dists["euclidean_distance"]
                     })
                 except Exception as e:
                     logger.error(f"Error processing embedding {ref_file.name}: {e}")
@@ -71,6 +80,15 @@ class EmbeddingComparator:
         if df.empty:
             return pd.DataFrame()
         
-        summary = df.groupby(['speaker_id', 'task'])['cosine_distance'].agg(['mean', 'std']).reset_index()
-        summary.columns = ['speaker_id', 'task', 'avg_distance', 'std_distance']
+        summary = df.groupby(['speaker_id', 'task']).agg({
+            'cosine_distance': ['mean', 'std'],
+            'euclidean_distance': ['mean', 'std']
+        }).reset_index()
+        
+        # Flatten columns
+        summary.columns = [
+            'speaker_id', 'task', 
+            'avg_cos_dist', 'std_cos_dist',
+            'avg_euc_dist', 'std_euc_dist'
+        ]
         return summary

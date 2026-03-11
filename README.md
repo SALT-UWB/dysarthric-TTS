@@ -187,14 +187,18 @@ Evaluate synthetic parallel datasets (e.g., PC-GITA vs. TTS generated versions) 
   - **Data Integrity**: Verifies existence of parallel `.wav`, `.csv` (alignment), and `.txt` files.
   - **Transcription Content**: Checks if `.txt` files are identical and logs mismatches.
   - **Duration Delta**: Alerts on audio duration differences > 50% relative to the reference.
-  - **WavLM Embeddings**: Calculates **Cosine Distances** between high-dimensional embeddings.
+  - **WavLM Embeddings**: Calculates **Cosine** and **Euclidean** distances. Includes **Fidelity vs. Baseline** analysis (Ref-Test vs Ref-Ref) to quantify synthesis quality.
   - **Phoneme Fidelity**: Computes duration deltas per phoneme and identifies missing tokens in the test set.
 - **Visualization**:
-  - **Notebook**: `dataset_comparison/dataset_comparison_viz.ipynb`
+  - **Notebooks**: 
+    - `dataset_comparison/dataset_comparison_viz.ipynb`: General integrity and audio analysis.
+    - `dataset_comparison/embedding_comparison_viz.ipynb`: Specialized embedding dashboard with global experiment comparisons and sentence-level baselines.
   - **Interactive Analysis**:
-    - Summary tables of embedding distances and variances across all task groups (DDK, monologue, readtext, sentences, words).
+    - **Global Overview**: Compare multiple experiments side-by-side in a unified table.
+    - **Inter-speaker Baselines**: Line plots for sentences 1-10 comparing **Fidelity** (intra-speaker) against **Natural Diversity** (inter-speaker) with 95% CI shadows.
+    - Summary tables of embedding distances across all tasks (DDK, monologue, readtext, sentences, words).
     - Group-level comparison (PD vs. HC) with H/Y severity scores integrated.
-    - **Interactive Drill-down**: Select a problematic file from a dropdown to see side-by-side **transcripts**, **spectrograms**, and use **integrated audio players** for direct comparison.
+    - **Interactive Drill-down**: Select a problematic file from a dropdown to see side-by-side **transcripts**, **spectrograms**, and use **integrated audio players**.
 
 ## Dataset Protection
 **CRITICAL**: NEVER commit real PC-GITA audio, transcripts, or metadata to this repository. All raw data should be stored in `datalocal/` which is ignored by git.

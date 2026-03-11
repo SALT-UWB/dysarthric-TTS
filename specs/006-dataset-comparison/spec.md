@@ -53,14 +53,15 @@ As a researcher, I want to visualize the comparison results to quickly identify 
 ## Requirements
 
 ### Functional Requirements
-- **FR-001**: Implement a data integrity script to check file existence and transcription identity across reference and test directories.
+- **FR-001**: Implement a data integrity script to check file existence (WAV, CSV, TXT, PT) and transcription identity.
 - **FR-002**: Calculate audio duration for all files and identify significant length discrepancies.
 - **FR-003**: Load WavLM embeddings from `{corpus_root}/speaker_embeddings/wavLM` for parallel comparison.
-- **FR-004**: Calculate pairwise distances (e.g., Euclidean or Cosine) between parallel embeddings.
-- **FR-005**: Analyze phoneme duration differences from CSV alignment files.
-- **FR-006**: Identify missing phonemes in the test dataset relative to the reference.
-- **FR-007**: Aggregate all metrics (duration, embedding distance, phoneme diffs) by Speaker, Task Group, and Health Status (PD/HC).
-- **FR-008**: Provide a Jupyter notebook (`dataset_comparison_viz.ipynb`) for visualization of distances, variances, and speaker-level trends.
+- **FR-004**: Calculate and report **Cosine Distance** (1 - Similarity) and **Euclidean Distance** (L2 norm).
+- **FR-005**: Calculate Inter-speaker diversity baselines (Ref-Ref and Test-Test) for tasks with common sentence IDs (sentences 1-10).
+- **FR-006**: Analyze phoneme duration differences from CSV alignment files.
+- **FR-007**: Identify missing phonemes in the test dataset relative to the reference.
+- **FR-008**: Aggregate all metrics (duration, embedding distance, phoneme diffs) by Speaker, Task Group, and Health Status (PD/HC).
+- **FR-009**: Provide an English-localized dashboard (`embedding_comparison_viz.ipynb`) for global experiment summaries and sentence-level fidelity visualization.
 
 ## Success Criteria
 - **SC-001**: 100% coverage of file existence and transcription checks for the specified tasks.
