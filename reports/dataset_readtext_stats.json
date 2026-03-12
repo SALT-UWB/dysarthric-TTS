@@ -1,0 +1,20 @@
+{
+    "total": {
+        "files": 100,
+        "sentences": 499,
+        "words": 3600,
+        "duration_sec": 1643.568125000001
+    },
+    "hc": {
+        "files": 50,
+        "sentences": 244,
+        "words": 1800,
+        "duration_sec": 821.7751666666662
+    },
+    "pd": {
+        "files": 50,
+        "sentences": 255,
+        "words": 1800,
+        "duration_sec": 821.7929583333337
+    }
+}
